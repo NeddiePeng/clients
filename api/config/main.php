@@ -89,6 +89,8 @@ return [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET v1/order-details' => 'v1/order/order-details',
+                'GET v1/orders' => 'v1/order/index',
                 'GET v1/nearbys' => 'v1/nearby/index',
                 'GET v1/likes' => 'v1/index/store-list',
                 'GET v1/sends/<mobile:\d+>' => 'v1/common/sms-code',

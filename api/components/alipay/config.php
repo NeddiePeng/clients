@@ -11,5 +11,11 @@ return [
     'appKey' => '24952548',
 
     //阿里云短信access
-    'access' => '05a9bc76fb3bba3e8679693f0cf43440'
+    'access' => '05a9bc76fb3bba3e8679693f0cf43440',
+
+    //应用app_id
+    'app_id' => '',
+
+    //回调地址
+    'notify_url' => ''
 ];

@@ -143,6 +143,8 @@ class weChat extends Component
 
     /**
      * 退款
+     *
+     * @return   array | null
      */
     public function refund($params)
     {
@@ -150,8 +152,7 @@ class weChat extends Component
         $api = $this->$api;
         $data = refund($params);
         $data = http($data,$api);
-
-
+        return $data;
     }
 
 

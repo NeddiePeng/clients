@@ -5,6 +5,8 @@
  * @author auto create
  * @since 1.0, 2018-05-08 17:55:00
  */
+namespace api\AliPay\aop\request;
+
 class AlipayTradeWapPayRequest
 {
 	/** 

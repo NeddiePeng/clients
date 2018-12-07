@@ -15,7 +15,7 @@ class searchWhere extends Component
 
 
     /**
-     * 添加一个搜索
+     * 搜索
      *
      * @param    string    $position   位置
      * @param    array     $param      搜索条件
@@ -49,6 +49,53 @@ class searchWhere extends Component
             ['=','top_sort',$param['top_sort']],
             ['=','sort_one',$param['sort_one']]
         ];
+        return $where;
+    }
+
+
+
+
+    /**
+     * 订单条件
+     *
+     * @param    array    $param    参数集合
+     * @return   array
+     */
+    public function order($param)
+    {
+        switch ($param['nav_type'])
+        {
+            case 'all':
+                $where = "1=1";
+                break;
+            case 0:
+                $where = [
+                    'and',
+                    ['=','order.is_pay_success',2]
+                ];
+                break;
+            case 1:
+                $where = [
+                    'and',
+                    ['=','code.is_use',2]
+                ];
+                break;
+            case 2:
+                $where = [
+                    'and',
+                    ['=','order.is_comment',2]
+                ];
+                break;
+            case 3:
+                $where = [
+                    'and',
+                    ['<>','order.is_refund',0],
+                    ['=','is_pay_success',1]
+                ];
+                break;
+            default:
+                $where = "1=1";
+        }
         return $where;
     }
 

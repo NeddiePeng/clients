@@ -19,6 +19,7 @@ class Order extends ActiveRecord
     public $accessToken;
     public $page = 1;
     public $limit = 5;
+    public $nav_type = 'all';
 
 
     //数据表
@@ -32,7 +33,8 @@ class Order extends ActiveRecord
     public function rules()
     {
         return [
-            [['accessToken'],'required','on' => 'new-order']
+            [['accessToken'],'required','on' => 'new-order'],
+            [['order_id'],'required','on' => 'order-details']
         ];
     }
 
@@ -41,10 +43,97 @@ class Order extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'accessToken' => Yii::t("app",'accessToken')
+            'accessToken' => Yii::t("app",'accessToken'),
+            'order_id' => Yii::t("app",'order_id')
         ];
     }
 
+
+
+    /**
+     * 订单详情
+     *
+     * @return   array | null
+     */
+    public function orderDetailsOne()
+    {
+        $order_id = $this->order_id;
+        $data = (new Query())
+                ->select("*")
+                ->from(static::tableName().' as order')
+                ->leftJoin("pay_store_order_project as pro",'pro.order_id=order.order_id')
+                ->leftJoin("pay_store_consume_code as code",'code.object_id=pro.id')
+                ->where("order.order_id=$order_id")
+                ->one();
+        return $data;
+    }
+
+
+
+    /**
+     * 订单信息
+     *
+     * @param     array   $orderData   订单数据集合
+     * @return    array | null
+     */
+    public function Part($orderData)
+    {
+        $data = $this->proData($orderData['type'],$orderData['project_id']);
+        $status = $this->orderStatus($orderData['is_pay_success'],$orderData['is_refund'],$orderData['is_comment']);
+        $proData = Product::unified($data, $orderData['type'], $orderData['number'],$status,$orderData['pay_time'],$orderData['x_id']);
+        $storeData = Store::findOne(['id' => $orderData['x_id']]);
+        $last_data = [
+            'order_id' => $orderData['order_id'],
+            'validate_time' => date("Y-m-d H:i:s",strtotime("last day of last month",$orderData['pay_time'])),
+            'code' => $orderData['consum_code'],
+            'is_use' => $orderData['is_use'],
+            'mobile' => $orderData['mobile'],
+            'dis_price' => $orderData['dis_price'],
+            'last_price' => $orderData['actual_price'],
+            'store_name' => $storeData['store_name'],
+            'store_mobile' => $storeData['mobile'],
+            'address' => $storeData['address'],
+            's_id' => $orderData['x_id']
+        ];
+        $last_data = array_merge($proData,$last_data);
+        return $last_data;
+    }
+
+
+    /**
+     * 订单状态
+     *
+     * @param     int    $is_pay_success   支付状态
+     * @param     int    $is_refund        退款状态
+     * @param     int    $is_comment       评论状态
+     * @return    int
+     */
+    public function orderStatus($is_pay_success,$is_refund,$is_comment)
+    {
+        if($is_pay_success == 1 && $is_refund == 0)
+        {
+            switch ($is_refund)
+            {
+                case 0:
+                    if ($is_comment) $status = 1; else $status = 5;
+                    continue;
+                case 1:
+                    $status = 2;
+                    continue;
+                case 2:
+                    $status = 3;
+                    continue;
+                case 3:
+                    $status = 4;
+                    continue;
+                default:
+                    $status = 0;
+            }
+        }else{
+            $status = 0;
+        }
+        return $status;
+    }
 
 
     /**
@@ -55,7 +144,9 @@ class Order extends ActiveRecord
         $userData = User::findIdentityByAccessToken($this->accessToken);
         if(!$userData) return null;
         $uid = $userData['id'];
-        $param = [];
+        $param = [
+            'nav_type' => $this->nav_type
+        ];
         $otherWhere = Yii::$app->where->select('order',$param);
         $order = (new Query())
                  ->select("*")
@@ -82,49 +173,44 @@ class Order extends ActiveRecord
         $last_data = [];
         foreach ($order as $key => $val)
         {
-            switch ($val['type'])
-            {
-                case 1:
-                    $data = Product::vou($val['project_id']);
-                    continue;
-                case 2:
-                    $data = Product::group($val['project_id']);
-                    continue;
-                case 3:
-                    $data = Product::check($val['project_id']);
-                    continue;
-                case 4:
-                    $data = Product::shopping($val['project_id']);
-                    continue;
-                default:
-                    $data = null;
-            }
-            if($val['is_pay_success'] == 1 && $val['is_refund'] == 0)
-            {
-                switch ($val['is_refund'])
-                {
-                    case 0:
-                        if ($val['is_comment']) $status = 1; else $status = 5;
-                        continue;
-                    case 1:
-                        $status = 2;
-                        continue;
-                    case 2:
-                        $status = 3;
-                        continue;
-                    case 3:
-                        $status = 4;
-                        continue;
-                    default:
-                        $status = 0;
-                }
-            }else{
-                $status = 0;
-            }
+            $data = $this->proData($val['type'],$val['project_id']);
+            $status = $this->orderStatus($val['is_pay_success'],$val['is_refund'],$val['is_comment']);
             $proData = Product::unified($data, $val['type'], $val['number'],$status,$val['pay_time'],$val['x_id']);
             if($proData) $last_data[] = $proData;
         }
         return $last_data;
+    }
+
+
+
+
+    /**
+     * 订单商品
+     *
+     * @param    int    $type    订单类型
+     * @param    int    $p_id    商品id
+     * @return   array | null
+     */
+    public function proData($type,$p_id)
+    {
+        switch ($type)
+        {
+            case 1:
+                $data = Product::vou($p_id);
+                continue;
+            case 2:
+                $data = Product::group($p_id);
+                continue;
+            case 3:
+                $data = Product::check($p_id);
+                continue;
+            case 4:
+                $data = Product::shopping($p_id);
+                continue;
+            default:
+                $data = null;
+        }
+        return $data;
     }
 
 

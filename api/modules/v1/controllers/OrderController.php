@@ -42,7 +42,7 @@ class OrderController extends Base
 
 
     /**
-     * 最新订单
+     * 订单
      */
     public function actionIndex()
     {
@@ -63,6 +63,26 @@ class OrderController extends Base
         return $this->returnRuleErr($model);
     }
 
+
+
+    /**
+     * 订单详情
+     */
+    public function actionOrderDetails()
+    {
+        $this->getBehavior("TokenBehavior")->checkAccessToken();
+        $getParams = $this->params;
+        $model = new $this->modelClass(['scenario' => 'order-details']);
+        $loadParam = $model->load($getParams,'');
+        if($loadParam && $model->validate())
+        {
+            $order = $model->orderDetailsOne();
+            if(!$order) return $this->returnData(0,'获取未知数据');
+            $orderPart = $model->Part($order);
+            return $this->returnData(200,'获取成功',$orderPart);
+        }
+        return $this->returnRuleErr($model);
+    }
 
 
 
