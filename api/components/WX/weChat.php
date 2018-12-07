@@ -10,6 +10,8 @@ namespace api\components\WX;
 use Yii;
 use yii\base\Component;
 
+require 'function.php';
+
 class weChat extends Component
 {
 
@@ -99,8 +101,59 @@ class weChat extends Component
     }
 
 
+    /**
+     * 下订单
+     *
+     * @param    array    $params    订单参数
+     * @return   string
+     */
+    public function unifiedOrder($params)
+    {
+        $api = strtolower(__FUNCTION__);
+        $api = $this->config[$api];
+        $xml = assemble($params);
+        return $data = http($xml,$api);
+    }
 
-    //
+
+
+    /**
+     * 异步回调
+     *
+     * @return    array | boolean
+     */
+    public function notify_url()
+    {
+        $params = file_get_contents("php://input");
+        $data = xmlToArr($params);
+        if(!$data) return false;
+        $sign = $data['sign'];
+        unset($data['sign']);
+        if($sign === createSign($data))
+        {
+            if($data['result_code'] === 'SUCCESS')
+            {
+                success();
+            }
+        }
+        return $data;
+    }
+
+
+
+    /**
+     * 退款
+     */
+    public function refund($params)
+    {
+        $api = strtolower(__FUNCTION__);
+        $api = $this->$api;
+        $data = refund($params);
+        $data = http($data,$api);
+
+
+    }
+
 
 
 

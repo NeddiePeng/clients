@@ -8,10 +8,16 @@
 return [
 
     //应用APP_ID
-    'app_id' => '1231',
+    'app_id' => 'wx2421b1c4370ec43b',
 
     //secret应用秘钥
     'secret' => '31231',
+
+    //商户ID
+    'mch_id' => '10000100',
+
+    //支付key
+    'key' => '',
 
     //获取access_token
     'access_token_api' => 'https://api.weixin.qq.com/sns/oauth2/access_token',
@@ -23,5 +29,17 @@ return [
     'check_token' => 'https://api.weixin.qq.com/sns/auth',
 
     //获取用户信息
-    'getUser' => 'https://api.weixin.qq.com/sns/userinfo'
+    'getUser' => 'https://api.weixin.qq.com/sns/userinfo',
+
+    //统一下单
+    'unifiedorder' => 'https://api.mch.weixin.qq.com/pay/unifiedorder',
+
+    //退款
+    'refund' => 'https://api.mch.weixin.qq.com/secapi/pay/refund',
+
+    //回调地址
+    'notify_url' => '',
+
+    //退款推掉
+    'refund_notify_url' => ''
 ];
