@@ -8,6 +8,7 @@
 namespace api\modules\v1\models;
 
 use api\models\User;
+use dosamigos\qrcode\QrCode;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Query;
@@ -46,6 +47,23 @@ class Order extends ActiveRecord
             'accessToken' => Yii::t("app",'accessToken'),
             'order_id' => Yii::t("app",'order_id')
         ];
+    }
+
+
+
+
+    /**
+     * 订单消费码
+     */
+    public function codeData()
+    {
+        $order_id = $this->order_id;
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_consume_code")
+                ->where(['order_id' => $order_id])
+                ->one();
+        return $data;
     }
 
 

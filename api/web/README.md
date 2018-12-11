@@ -32,7 +32,7 @@ GetParam:get参数直接跟在url后面
 
 ####获取手机验证码
 
-*Url:http://www.caiji.com/v1/sends*
+*Url:http://clients.qmwjj.cc/v1/sends*
 
 *Method:GET*
 
@@ -41,7 +41,7 @@ GetParam:get参数直接跟在url后面
 mobile:手机号
 ```
 
-*请求示例:http://www.caiji.com/v1/sends/15808278683*
+*请求示例:http://clients.qmwjj.cc/v1/sends/15808278683*
 
 *Return:*
 ```json
@@ -56,7 +56,7 @@ mobile:手机号
 
 ####手机登录&注册
 
-*Url:http://www.caiji.com/v1/login/index*
+*Url:http://clients.qmwjj.cc/v1/login/index*
 
 *Method:POST*
 
@@ -88,7 +88,7 @@ accessToken:授权码【后面请求一些接口时会用到】
 
 ####第三方登录【微信】
 
-*Url:http://www.caiji.com/v1/wxs*
+*Url:http://clients.qmwjj.cc/v1/wxs*
 
 *Method:POST*
 
@@ -119,7 +119,7 @@ is_bind_mobile：是否已绑定手机号【1：是0：否】
 
 ####绑定手机号
 
-*Url:http://www.caiji.com/v1/binds*
+*Url:http://clients.qmwjj.cc/v1/binds*
 
 *Method:POST*
 
@@ -152,7 +152,7 @@ accessToken:授权码
 
 ####advert数据
 
-*Url:http://www.caiji.com/v1/adverts/mask*
+*Url:http://clients.qmwjj.cc/v1/adverts/mask*
 
 *Method:GET*
 
@@ -167,26 +167,23 @@ mask:advert显示位置  取值范围：【
 】
 ```
 
-*请求示例:http://www.caiji.com/v1/adverts/indexTop*
+*请求示例:http://clients.qmwjj.cc/v1/adverts/indexTop*
 
 *Return:*
 ```json
 {
-    "code": 500,
-    "msg": "Class 'Redis' not found",
-    "data": {
-        "file": "F:\\phpstudy\\PHPTutorial\\WWW\\clients\\api\\extend\\RedisCache.php",
-        "line": 49
-    }
+    "code": 0,
+    "msg": "数据为空",
+    "data": {}
 }
 ```
 
 
 ####猜你喜欢
 
-*Url:http://www.caiji.com/v1/likes/*
+*Url:http://clients.qmwjj.cc/v1/likes/*
 
-*Method:POST*
+*Method:GET*
 
 *GetParam:*
 ```text
@@ -201,17 +198,21 @@ clients_id:设备唯一标识id
 ```text
 accessToken:用户accessToken【登录的情况下】
 ```
-*请求示例:http://www.caiji.com/v1/likes?lat=121.1&lng=12.21&clients_id=1231*
+*请求示例:http://clients.qmwjj.cc/v1/likes?lat=121.1&lng=12.21&clients_id=1231*
 
 *Return:*
 ```json
-
+{
+    "code": 0,
+    "msg": "数据为空",
+    "data": {}
+}
 ```
 
 
 ####附近商家数据
 
-*Url:http://www.caiji.com/v1/nearbys/*
+*Url:http://clients.qmwjj.cc/v1/nearbys/*
 
 *Method:GET*
 
@@ -220,11 +221,21 @@ accessToken:用户accessToken【登录的情况下】
 lng:经度
 
 lat:纬度
+
+page:页码
+
+sort_two：二级分类
+
+top_sort:一级分类
 ```
 
 *Return:*
 ```json
-
+{
+    "code": 0,
+    "msg": "数据为空",
+    "data": {}
+}
 ```
 
 

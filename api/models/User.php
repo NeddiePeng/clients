@@ -28,6 +28,8 @@ class User extends ActiveRecord implements IdentityInterface
 
     private static $users = null;
 
+    public $status = 10;
+
     /**
      * @inheritdoc
      */
@@ -132,13 +134,27 @@ class User extends ActiveRecord implements IdentityInterface
         $insert_data = [
             'mobile' => $mobile,
             'accessToken' => LoginForm::$accessToken,
-            'status' => self::STATUS_ACTIVE
+            'status' => self::STATUS_ACTIVE,
+            'username' => $this->randName(),
+            'time' => time()
         ];
         $save = Yii::$app->db->createCommand()
                 ->insert(self::tableName(),$insert_data)
                 ->execute();
         return $save > 0 ? true : false;
 
+    }
+
+
+
+    /**
+     * 随机用户名
+     */
+    public function randName()
+    {
+        $str = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890qwertyuiopasdfghjklzxcvbnm";
+        $str = 'jfb_'.substr(str_shuffle($str),5,8);
+        return $str;
     }
 
 

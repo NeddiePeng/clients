@@ -9,6 +9,7 @@ namespace api\modules\v1\controllers;
 
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
+use dosamigos\qrcode\QrCode;
 use Yii;
 
 class OrderController extends Base
@@ -85,5 +86,29 @@ class OrderController extends Base
     }
 
 
+
+    /**
+     * 付款码
+     */
+    public function actionPaymentCode()
+    {
+        $params = $this->params;
+        $this->getBehavior("TokenBehavior")->checkAccessToken();
+        $model = new $this->modelClass(['scenario' => 'order-details']);
+        $loadParam = $model->load($params,'');
+        if($loadParam && $model->validate())
+        {
+            $codeData = $model->codeData();
+            if(!$codeData)return $this->returnData(0,'数据为空');
+            ob_start();
+            QrCode::jpg($params['order_id']);
+            $imageString = base64_encode(ob_get_contents());
+            ob_end_clean();
+            $codeData['codeImg'] = $imageString;
+            return $this->returnData(200,'获取成功',$codeData);
+
+        }
+        return $this->returnRuleErr($model);
+    }
 
 }

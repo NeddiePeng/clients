@@ -5,6 +5,7 @@
  * @author auto create
  * @since 1.0, 2015-01-20
  */
+namespace api\extend\sendSms\top;
 class ResultSet
 {
 	

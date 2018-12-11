@@ -61,7 +61,10 @@ class Base extends ActiveController
         $erInfo = '';
         if($err)
         {
-            $erInfo = $err[0];
+            foreach ($err as $k => $v)
+            {
+                $erInfo = $k.':'.$v;
+            }
         }
         return $this->returnData(400,$erInfo);
     }
@@ -160,7 +163,10 @@ class Base extends ActiveController
      */
     public function array2dSort($array, $key)
     {
+        foreach ($array as $key => $val)
+        {
 
+        }
     }
 
 

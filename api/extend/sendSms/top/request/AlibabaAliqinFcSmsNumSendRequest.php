@@ -7,6 +7,8 @@
  */
 namespace api\extend\sendSms\top\request;
 
+use api\extend\sendSms\top\RequestCheckUtil;
+
 class AlibabaAliqinFcSmsNumSendRequest
 {
 	/** 

@@ -26,13 +26,6 @@ class Store extends ActiveRecord
     public $top_sort;
 
 
-    //设置数据库
-    public static function getDb()
-    {
-        return Yii::$app->db2;
-    }
-
-
     //数据表
     public static function tableName()
     {
@@ -71,7 +64,7 @@ class Store extends ActiveRecord
      */
     public function getStoreList()
     {
-        $history = UserActions::browseHistory($this->accessToken, $this->clents_id);
+        $history = UserActions::browseHistory($this->accessToken, $this->clients_id);
         if($history)
         {
             $storeData = null;
@@ -136,7 +129,7 @@ class Store extends ActiveRecord
     public function nearbyPraise()
     {
         $scope = Base::calcScope($this->lat, $this->lng);
-        $sql = 'SELECT `*` FROM `'. static::tableName() .'` WHERE `lat` < '.$scope['maxLat'].' and `lat` > '.$scope['minLat'];
+        $sql = 'SELECT * FROM `'. static::tableName() .'` WHERE `lat` < '.$scope['maxLat'].' and `lat` > '.$scope['minLat'];
         $sql .= ' and `lng` < '.$scope['maxLng'].' and `lng` > '.$scope['minLng'];
         $data = Yii::$app->db->createCommand($sql)->queryAll();
         return $data;
@@ -162,7 +155,7 @@ class Store extends ActiveRecord
         ];
         $params = [
             'top_sort' => $this->top_sort,
-            'sort_one' => $this->sort_one
+            'one_sort' => $this->sort_two
         ];
         $otherWhere = Yii::$app->where->select('nearby',$params);
         $offset = ($this->page - 1) * 10;
@@ -315,6 +308,8 @@ class Store extends ActiveRecord
     public function storeDetails($s_id)
     {
         $data = static::findOne(['id' => $s_id]);
+        var_dump($data);
+        exit;
         if(!$data) return null;
         $headerData = $this->headerImg($s_id);
         $otherData = $this->otherInfo($data['top_sort'],$s_id,$data['score'],$data['two_sort']);

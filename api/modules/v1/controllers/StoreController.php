@@ -1,22 +1,21 @@
 <?php
 /**
- * 用户controller.
+ * 门店Controller.
  * User: Pengfan
- * Date: 2018/12/5
- * Time: 19:27
+ * Date: 2018/12/10
+ * Time: 11:03
  */
 namespace api\modules\v1\controllers;
 
 use api\behaviors\TokenBehavior;
-use api\models\User;
 use api\modules\Base;
-use Yii;
 
-class UserController extends Base
+class StoreController extends Base
 {
 
+
     //model类
-    public $modelClass = 'api\modules\v1\models\UserActions';
+    public $modelClass = 'api\modules\v1\models\StoreActions';
 
 
     /**
@@ -44,22 +43,19 @@ class UserController extends Base
 
 
     /**
-     * 我的个人中心
+     * 门店数据
      */
     public function actionIndex()
     {
-        $this->getBehavior('TokenBehavior')->checkAccessToken();
-        $accessToken = Yii::$app->request->headers->get('accessToken');
-        $params = ['accessToken' => $accessToken];
-        $model = new $this->modelClass();
+        $params = $this->params;
+        $model = new $this->modelClass(['scenario' => 'store-list']);
         $loadParam = $model->load($params,'');
         if($loadParam && $model->validate())
         {
-            $userData = User::findIdentityByAccessToken($accessToken);
-            if(!$userData)return $this->returnData(0,'数据为空');
-            return $this->returnData(200,'success',$userData);
+
         }
         return $this->returnRuleErr($model);
+
     }
 
 

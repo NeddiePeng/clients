@@ -19,6 +19,12 @@ return [
         ],
     ],
     'components' => [
+        'sphinx' => [
+            'class' => 'api\components\sphinx\BaseClas'
+        ],
+        'likeShare' => [
+            'class' => 'api\components\likeRedis'
+        ],
         'redisPage' => [
             'class' => 'api\components\redisPaging'
         ],
@@ -89,12 +95,13 @@ return [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET v1/nearbys' => 'v1/nearby/index',
+                'GET v1/paymentCodes/<order_id:\w+>' => 'v1/order/payment-code',
                 'GET v1/order-details' => 'v1/order/order-details',
                 'GET v1/orders' => 'v1/order/index',
-                'GET v1/nearbys' => 'v1/nearby/index',
                 'GET v1/likes' => 'v1/index/store-list',
                 'GET v1/sends/<mobile:\d+>' => 'v1/common/sms-code',
-                'GET v1/adverts/<mask:\w+>' => 'v1/common/index',
+                'GET v1/adverts/<mask:\w+>' => 'v1/common/advert',
                 'POST v1/binds' => 'v1/login/bind-mobile',
                 'POST v1/wxs' => 'v1/login/other-login',
                 'GET v1/index/<id:\d+>' => 'v1/index/store-list',

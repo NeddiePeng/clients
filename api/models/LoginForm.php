@@ -22,6 +22,8 @@ class LoginForm extends ActiveRecord
     //手机验证码字段
     public $sms_code;
 
+    public $status = 10;
+
 
     public static function tableName()
     {
@@ -39,7 +41,8 @@ class LoginForm extends ActiveRecord
             // username and password are both required
             [['mobile'], 'validateMobile','on' => 'login'],
             [['mobile','sms_code'],'required','on' => 'bind-mobile'],
-            [['sms_code'],'validateSmsCode','on' => 'bind-mobile']
+            [['sms_code'],'validateSmsCode','on' => 'bind-mobile'],
+            [['sms_code'],'validateSmsCode','on' => 'login']
         ];
     }
 

@@ -7,6 +7,7 @@
  */
 namespace api\modules\v1\controllers;
 
+use api\models\User;
 use Yii;
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
@@ -18,6 +19,12 @@ class CommonController extends Base
     //model类
     public $modelClass = 'api\modules\v1\models\Common';
 
+
+    //门店点赞数据
+    public $likeData;
+
+    //门店分享数据
+    public $shareData;
 
     //检查有权限访问
     public function behaviors()
@@ -44,7 +51,7 @@ class CommonController extends Base
     /**
      * 获取banner数据
      */
-    public function actionIndex()
+    public function actionAdvert()
     {
         $params = $this->params;
         $model = new $this->modelClass(['scenario' => 'advert']);
@@ -92,6 +99,136 @@ class CommonController extends Base
         }
         return $this->returnData(200,'发送成功');
     }
+
+
+
+
+    /**
+     * 门店点赞 & share
+     */
+    public function actionStoreLike()
+    {
+        $this->getBehavior('TokenBehavior')->checkAccessToken();
+        $params = $this->params;
+        $accessToken = Yii::$app->request->headers->get('accessToken');
+        $model = new $this->modelClass(['scenario' => 'like-share']);
+        $loadParam = $model->load($params);
+        if($loadParam && $model->validate())
+        {
+            $userData = User::findIdentityByAccessToken($accessToken);
+            $uid = $userData['id'];
+            Yii::$app->likeShare->setLikeRedis($params['s_id'],$params['type'],$uid);
+            return $this->returnData(200,'点赞成功');
+        }
+        return $this->returnRuleErr($model);
+    }
+
+
+
+
+    /**
+     * 数据同步
+     */
+    public function actionSynchro()
+    {
+        $cacheData = Yii::$app->likeShare->synchro();
+        if(!$cacheData) return false;
+        $likeData = $cacheData['likeData'];
+        $shareData = $cacheData['shareData'];
+        if($likeData)
+        {
+            foreach ($likeData as $k => $v)
+            {
+                $this->likeData[$v['s_id']][] = $v['uid'];
+            }
+            if($this->likeData) {
+                foreach ($this->likeData as $key => $val) {
+                    $update_data = ['like_num' => count($val)];
+                    Yii::$app->db->createCommand()
+                    ->update("pay_store_info",$update_data,['id' => $key])
+                    ->execute();
+                }
+                $this->insert_data();
+            }
+        }
+        if($shareData)
+        {
+            foreach ($shareData as $k => $v)
+            {
+                $this->shareData[$v['s_id']][] = $v['uid'];
+            }
+            if($this->shareData) {
+                foreach ($this->shareData as $key => $val) {
+                    $update_data = ['share_num' => count($val)];
+                    Yii::$app->db->createCommand()
+                        ->update("pay_store_info",$update_data,['id' => $key])
+                        ->execute();
+                }
+                $this->insert_data_share();
+            }
+        }
+    }
+
+
+
+    /**
+     * 点赞信息写入数据到数据库
+     */
+    public function insert_data()
+    {
+        $likeData = $this->likeData;
+        $insert_data = [];
+        foreach ($likeData as $k => $v)
+        {
+            $insert_data[] = [
+                'x_id' => $k,
+                'uid' => $v['uid'],
+                'time' => $v['time']
+            ];
+        }
+        $filed = ['x_id','uid','time'];
+        Yii::$app->db->createCommand()
+        ->batchInsert("pay_store_like",$filed,$insert_data)
+        ->execute();
+    }
+
+
+
+
+    /**
+     * 分享信息写入数据库
+     */
+    public function insert_data_share()
+    {
+        $shareData = $this->shareData;
+        $insert_data = [];
+        foreach ($shareData as $k => $v)
+        {
+            $insert_data[] = [
+                'x_id' => $k,
+                'uid' => $v['uid'],
+                'time' => $v['time']
+            ];
+        }
+        $filed = ['x_id','uid','time'];
+        Yii::$app->db->createCommand()
+            ->batchInsert("pay_store_share",$filed,$insert_data)
+            ->execute();
+    }
+
+
+
+
+    /**
+     * 全文检索
+     */
+    public function actionRetrieval()
+    {
+
+    }
+
+
+
 
 
 

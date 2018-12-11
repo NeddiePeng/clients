@@ -30,5 +30,8 @@ return [
     //附近
     'top_sort' => '顶级分类',
     'sort_two' => '二级分类',
+    'sort_id' => '分类ID',
+    's_id' => "门店id",
+    'type' => "操作类型"
 
 ];

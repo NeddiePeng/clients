@@ -26,7 +26,8 @@ class Common extends ActiveRecord
     public function rules()
     {
         return [
-            [['mask'],'required','on' => 'advert']
+            [['mask'],'required','on' => 'advert'],
+            [['s_id','type'],'required','on' => 'like-share']
         ];
     }
 
@@ -35,7 +36,9 @@ class Common extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'mask' => Yii::t('app','mask')
+            'mask' => Yii::t('app','mask'),
+            's_id' => Yii::t('app','s_id'),
+            'type' => Yii::t('app','type')
         ];
     }
 
