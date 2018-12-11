@@ -151,7 +151,7 @@ class Store extends ActiveRecord
             ['<=','lat',$scope['maxLat']],
             ['>=','lng',$scope['minLng']],
             ['<=','lng',$scope['maxLng']],
-            ['=','status',6]
+            //['=','status',6]
         ];
         $params = [
             'top_sort' => $this->top_sort,
@@ -272,15 +272,17 @@ class Store extends ActiveRecord
     public function storeSort($type, $sort_id)
     {
         $table = "pay_hotel_brand_star";
+        $db = Yii::$app->db2;
         if($type !== 'hotel')
         {
             $table = "pay_store_sort";
+            $db = Yii::$app->db;
         }
         $data = (new Query())
             ->select("*")
             ->from("$table")
             ->where(['id' => $sort_id])
-            ->one();
+            ->one($db);
         return $data;
     }
 
@@ -307,27 +309,49 @@ class Store extends ActiveRecord
      */
     public function storeDetails($s_id)
     {
-        $data = static::findOne(['id' => $s_id]);
-        var_dump($data);
-        exit;
+        $data = (new Query())
+                ->select("*")
+                ->from(static::tableName())
+                ->where(['id' => $s_id])
+                ->one();
         if(!$data) return null;
-        $headerData = $this->headerImg($s_id);
-        $otherData = $this->otherInfo($data['top_sort'],$s_id,$data['score'],$data['two_sort']);
+        $headerData = $this->getStoreAlbum($s_id);
+        $otherData = $this->getOtherInfo($s_id,$data['top_sort'],$data['one_sort']);
+        //$otherData = $this->otherInfo($data['top_sort'],$s_id,$data['score'],$data['two_sort']);
+        $msgData = $this->msgData($s_id);
         return [
             's_id' => $data['id'],
             'store_name' => $data['store_name'],
             'address' => $data['address'],
-            'lat' => $data['lat'],
-            'lng' => $data['lng'],
-            'headerImg' => $headerData ? $headerData['img_url'] : "",
-            'one_sort' => $data['one_sort'],
-            'two_sort' => $data['two_sort'],
-            'pro_name' => $otherData[2],
+            'lat' => $data['lat'] ? $data['lat'] : 0,
+            'lng' => $data['lng'] ? $data['lng'] : 0,
+            'headerImg' => $headerData,
+            'sort_name' => $otherData[0] ? $otherData[0]['sort_name'] : "",
             'score' => $data['score'],
-            'exp' => $otherData[0],
-            'money_name' => $otherData[1],
-            'type' => $otherData[3]
+            'type' => $data['top_sort'] === 2 ? 'hotel' : 'other',
+            'like_num' => $data['like_num'] ? $data['like_num'] : 0,
+            'share_num' => $data['share_num'] ? $data['share_num'] : 0,
+            'proData' => $otherData[1],
+            'msgData' => $msgData
         ];
+    }
+
+
+
+    /**
+     * 门店消费信息
+     *
+     * @param   int   $s_id    门店id
+     * @return  array  | null
+     */
+    public function msgData($s_id)
+    {
+        $data = [
+            '测试数据_1',
+            '测试数据_2',
+            '测试数据_3'
+        ];
+        return $data;
     }
 
 
@@ -420,6 +444,25 @@ class Store extends ActiveRecord
 
 
     /**
+     * 重写门店其他信息
+     *
+     * @param    int    $s_id       门店id
+     * @param    int    $top_sort   顶级分类
+     * @param    int    $sort_two   二级分类
+     * @return   array | null
+     */
+    public function getOtherInfo($s_id, $top_sort, $sort_two)
+    {
+        //分类
+        $type = 'other';
+        if ($top_sort == 2) $type = 'hotel';
+        $sortData = $this->storeSort($type,$sort_two);
+        $sortPro = StoreOther::instance()->storePro($s_id,$type);
+        return [$sortData, $sortPro];
+    }
+
+
+    /**
      * 其他信息
      *
      * @return  array
@@ -446,7 +489,8 @@ class Store extends ActiveRecord
                 if($storePro['star_num'] >= 4) $proSort = "高档型";
             }
         }
-        else {
+        else
+        {
             $exp = '';
             $type = 'other';
             $money_name = $this->storeAdvert($s_id);
@@ -456,8 +500,8 @@ class Store extends ActiveRecord
                 $old = $pro[1];
                 $now = $pro[2];
                 $money_name = [
-                    'old' => $old,
-                    'now' => $now
+                    'old' => $old ? $old : 0,
+                    'now' => $now ? $now : 0
                 ];
             } else {
                 $storePro = $this->storeSort($type, $sort_two);
@@ -465,6 +509,28 @@ class Store extends ActiveRecord
             }
         }
         return [$exp,$money_name,$proSort,$type];
+    }
+
+
+
+    /**
+     * 门店图册
+     *
+     * @param   int    $s_id   门店id
+     * @param   int    $limit  显示数量
+     * @return  array | null
+     */
+    public function getStoreAlbum($s_id, $limit = 3)
+    {
+        $where = [
+            'x_id' => $s_id
+        ];
+        $data = (new Query())
+            ->select("img_url")
+            ->from("pay_store_album")
+            ->where($where);
+        if($limit == 3) return $data->limit(3)->all();
+        return $data->all();
     }
 
 
@@ -482,6 +548,7 @@ class Store extends ActiveRecord
         ];
         $data = (new Query())
                 ->select("img_url")
+                ->from("pay_store_album")
                 ->where(['type' => 1])
                 ->andWhere($where)
                 ->one();

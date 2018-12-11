@@ -58,10 +58,10 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $redis = new \Redis();
         $redis->connect("127.0.0.1",'6379');
-        $codeData = $redis->get("smsCode");
+        $codeData = $redis->get("mobileCode");
         if(!$codeData)
         {
-            $this->addError($attribute, "验证码已失效.");
+            $this->addError($attribute, "验证码错误.");
         }
         else
         {
@@ -131,12 +131,14 @@ class User extends ActiveRecord implements IdentityInterface
     public function register($mobile)
     {
         $this->apiToken();
+        $username = $this->randName();
         $insert_data = [
             'mobile' => $mobile,
             'accessToken' => LoginForm::$accessToken,
             'status' => self::STATUS_ACTIVE,
-            'username' => $this->randName(),
-            'time' => time()
+            'username' => $username,
+            'create_time' => time(),
+            'nickname' => $username
         ];
         $save = Yii::$app->db->createCommand()
                 ->insert(self::tableName(),$insert_data)
@@ -190,7 +192,7 @@ class User extends ActiveRecord implements IdentityInterface
         $this->accessToken = Yii::$app->security->generateRandomString().'_'.time();
         //存储到缓存里面,第二个参数为该用户的对象
         LoginForm::$accessToken = $this->accessToken;
-        Yii::$app->cache->set($this->accessToken,self::$users,3600);
+        Yii::$app->cache->set($this->accessToken,self::$users,7200);
     }
 
 

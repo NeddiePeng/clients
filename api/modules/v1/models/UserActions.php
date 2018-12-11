@@ -7,6 +7,7 @@
  */
 namespace api\modules\v1\models;
 
+use Yii;
 use api\models\User;
 use yii\db\ActiveRecord;
 use yii\db\Query;
@@ -84,5 +85,29 @@ class UserActions extends ActiveRecord
     {
 
     }
+
+
+
+
+
+    /**
+     * 门店是否已点过赞 & 分享
+     *
+     * @param   int    $s_id    门店id
+     * @param   int    $uid     用户uid
+     * @return  boolean
+     */
+    public function isLikeShare($s_id, $uid)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("user_like_share")
+                ->where(['x_id' => $s_id])
+                ->andWhere(['uid' => $uid])
+                ->count('id',Yii::$app->db3);
+        return $data;
+    }
+
+
 
 }

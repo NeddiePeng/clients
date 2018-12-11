@@ -19,14 +19,8 @@ class StoreActions extends ActiveRecord
     public $lng;
     public $accessToken;
     public $page = 1;
-
-
-    //设置数据库
-    public static function getDb()
-    {
-        return Yii::$app->db2;
-    }
-
+    public $sort_two;
+    public $s_id;
 
 
     //数据表
@@ -40,7 +34,8 @@ class StoreActions extends ActiveRecord
     public function rules()
     {
         return [
-            [['lat','lng','page','sort_id'],'required','on' => 'store-list']
+            [['lat','lng','page','top_sort'],'required','on' => 'store-list'],
+            [['s_id','lng','lat'],'required','on' => 'storeDetails']
         ];
     }
 
@@ -52,7 +47,8 @@ class StoreActions extends ActiveRecord
             'lat' => Yii::t('app','lat'),
             'lng' => Yii::t('app','lng'),
             'page' => Yii::t('app','page'),
-            'sort_id' => Yii::t('app','sort_id')
+            'top_sort' => Yii::t('app','top_sort'),
+            's_id' => Yii::t('app','s_id')
         ];
     }
 
@@ -66,7 +62,12 @@ class StoreActions extends ActiveRecord
      */
     public function getStoreData($params)
     {
-        $where = Yii::$app->where->select('storeSort',$params);
+        $where = ['and'];
+        $sortWhere = Yii::$app->where->select('storeSort',$params);
+        $addrWhere = Yii::$app->where->select('storeAddr',$params);
+        $otherWhere = Yii::$app->where->select("storeOther",$params);
+        $where = array_merge($where,$sortWhere,$addrWhere,$otherWhere);
+
         $per = ($this->page - 1) * 10;
         $store = (new Query())
                  ->select("*")
@@ -76,6 +77,23 @@ class StoreActions extends ActiveRecord
                  ->limit(10)
                  ->all();
         return $store;
+    }
+
+
+
+    /**
+     * 门店详情
+     *
+     * @return   array | null
+     */
+    public function storeDetails()
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from(static::tableName())
+                ->where(['id' => $this->s_id])
+                ->one();
+        return $data;
     }
 
 

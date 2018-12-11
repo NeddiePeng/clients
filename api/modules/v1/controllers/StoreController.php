@@ -9,6 +9,8 @@ namespace api\modules\v1\controllers;
 
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
+use api\modules\v1\models\Store;
+use api\modules\v1\models\StoreOther;
 
 class StoreController extends Base
 {
@@ -52,10 +54,40 @@ class StoreController extends Base
         $loadParam = $model->load($params,'');
         if($loadParam && $model->validate())
         {
-
+            $store = $model->getStoreData($params);
+            if(!$store) return $this->returnData(0,'数据为空');
+            $obj = new StoreOther();
+            $data = $obj->getPro($store);
+            if(!$data) return $this->returnData(0,'数据为空');
+            foreach ($data as $key => $val)
+            {
+                $data[$key]['distance'] = $this->sum($val['lat'],$val['lng'],$params['lat'],$params['lng']);
+            }
+            return $this->returnData(200,'获取成功',$data);
         }
         return $this->returnRuleErr($model);
 
+    }
+
+
+
+
+    /**
+     * 门店详情
+     */
+    public function actionStoreDetails()
+    {
+        $params = $this->params;
+        $model = new $this->modelClass(['scenario' => 'storeDetails']);
+        $loadParam = $model->load($params,'');
+        if($loadParam && $model->validate())
+        {
+            $store = $model->storeDetails();
+            if(!$store) return $this->returnData(0,'数据为空');
+            $sortData = Store::instance()->storeSort($store['top_sort'],$store['one_sort']);
+            $storeProData = "";
+        }
+        return $this->returnRuleErr($model);
     }
 
 

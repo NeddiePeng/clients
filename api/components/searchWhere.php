@@ -38,17 +38,17 @@ class searchWhere extends Component
     {
         if($param['top_sort'] == 'all')
         {
-            if($param['one_sort'] == 'hot') return ['and', ['=','top_sort',$param['top_sort']],];
+            if($param['one_sort'] == 'hot') return [];
             $where = [
                 'and',
-                ['=','one_sort',$param['sort_two']]
+                ['=','one_sort',$param['one_sort']]
             ];
             return $where;
         }
         $where = [
             'and',
             ['=','top_sort',$param['top_sort']],
-            ['=','one_sort',$param['sort_two']]
+            ['=','one_sort',$param['one_sort']]
         ];
         return $where;
     }
@@ -132,10 +132,10 @@ class searchWhere extends Component
     public function storeSort($params)
     {
         $where = [
-            ['=','top_sort',$params['sort_id']]
+            ['=','top_sort',$params['top_sort']]
         ];
-        if(!$params['sort_two']) return $where;
-        array_push($where,['=','sort_two',$params['sort_two']]);
+        if(!isset($params['sort_two']) || !$params['sort_two']) return $where;
+        array_push($where,['=','one_sort',$params['sort_two']]);
         return $where;
     }
 
@@ -241,7 +241,7 @@ class searchWhere extends Component
      */
     public function storeOther($params)
     {
-
+        return [];
     }
 
 

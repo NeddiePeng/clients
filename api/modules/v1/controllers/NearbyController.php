@@ -55,8 +55,14 @@ class NearbyController extends Base
             if(!$storeData) return $this->returnData(0,'数据为空');
             $obj = new StoreOther();
             $data = $obj->getPro($storeData);
-            if($data) return $this->returnData(200,'获取成功',$data);
-            return $this->returnData(0,'数据为空');
+            if(!$data) return $this->returnData(0,'数据为空');
+            foreach ($data as $k => $v)
+            {
+                $dis = $this->sum($params['lat'],$params['lng'],$v['lat'],$v['lng']);
+                $data[$k]['distance'] = $dis;
+            }
+            return $this->returnData(200,'获取成功',$data);
+
         }
         return $this->returnRuleErr($model);
     }

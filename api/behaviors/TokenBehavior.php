@@ -47,7 +47,7 @@ class TokenBehavior extends Behavior
         $accessToken = Yii::$app->request->headers->get('accessToken');
         if(is_string($accessToken))
         {
-            $data = Yii::$app->session->get($accessToken);
+            $data = Yii::$app->cache->get($accessToken);
             if(!$data)
             {
                 echo json_encode([

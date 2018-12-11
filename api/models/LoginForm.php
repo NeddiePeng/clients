@@ -55,10 +55,10 @@ class LoginForm extends ActiveRecord
     {
         $redis = new \Redis();
         $redis->connect("127.0.0.1",'6379');
-        $codeData = $redis->get("smsCode");
+        $codeData = $redis->get("mobileCode");
         if(!$codeData)
         {
-            $this->addError($attribute, "验证码已失效.");
+            $this->addError($attribute, "验证码错误.");
         }
         else
         {

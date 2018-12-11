@@ -14,6 +14,8 @@ use yii\db\Query;
 class Common extends ActiveRecord
 {
 
+    //其他字段
+    public $s_id;
 
     //数据表
     public static function tableName()

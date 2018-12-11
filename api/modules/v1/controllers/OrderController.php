@@ -50,6 +50,8 @@ class OrderController extends Base
         $this->getBehavior('TokenBehavior')->checkAccessToken();
         $getParams = $this->params;
         $headerParams = Yii::$app->request->headers->get('accessToken');
+        $headerParams = ['accessToken' => $headerParams];
+        $getParams = $getParams ? $getParams : [];
         $params = array_merge($getParams,$headerParams);
         $model = new $this->modelClass(['scenario' => 'new-order']);
         $loadParam = $model->load($params,'');

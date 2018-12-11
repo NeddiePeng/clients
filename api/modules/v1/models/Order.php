@@ -8,7 +8,6 @@
 namespace api\modules\v1\models;
 
 use api\models\User;
-use dosamigos\qrcode\QrCode;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Query;

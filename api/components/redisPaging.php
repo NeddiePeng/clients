@@ -30,6 +30,8 @@ class redisPaging extends Component
     {
         parent::init();
         $this->instance = RedisCache::getInstance(['host' => '127.0.0.1'],['db_id' => $this->db_id]);
+        //$this->instance->flushDB();
+        //exit;
     }
 
 
@@ -76,7 +78,7 @@ class redisPaging extends Component
         $returnDara = [];
         foreach ($limitData as $k => $val)
         {
-            $data = $this->instance->hGet($data_key,$val[$key]);
+            $data = $this->instance->hGet($data_key,$val);
             $returnDara[] = unserialize($data);
         }
         return $returnDara;

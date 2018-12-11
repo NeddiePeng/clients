@@ -8,6 +8,7 @@
 namespace api\modules\v1\controllers;
 
 use api\models\User;
+use api\modules\v1\models\UserActions;
 use Yii;
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
@@ -112,12 +113,15 @@ class CommonController extends Base
         $params = $this->params;
         $accessToken = Yii::$app->request->headers->get('accessToken');
         $model = new $this->modelClass(['scenario' => 'like-share']);
-        $loadParam = $model->load($params);
+        $loadParam = $model->load($params,'');
         if($loadParam && $model->validate())
         {
             $userData = User::findIdentityByAccessToken($accessToken);
             $uid = $userData['id'];
+            $isLikeShare = UserActions::instance()->isLikeShare($params['s_id'],$uid);
+            if($isLikeShare) return $this->returnData(400,'已操作过该门店');
             Yii::$app->likeShare->setLikeRedis($params['s_id'],$params['type'],$uid);
+            header("Location:http://clients.qmwjj.cc/v1/synchro");
             return $this->returnData(200,'点赞成功');
         }
         return $this->returnRuleErr($model);
@@ -139,7 +143,7 @@ class CommonController extends Base
         {
             foreach ($likeData as $k => $v)
             {
-                $this->likeData[$v['s_id']][] = $v['uid'];
+                $this->likeData[$v['s_id']][] = $v;
             }
             if($this->likeData) {
                 foreach ($this->likeData as $key => $val) {
@@ -155,7 +159,7 @@ class CommonController extends Base
         {
             foreach ($shareData as $k => $v)
             {
-                $this->shareData[$v['s_id']][] = $v['uid'];
+                $this->shareData[$v['s_id']][] = $v;
             }
             if($this->shareData) {
                 foreach ($this->shareData as $key => $val) {
@@ -180,15 +184,19 @@ class CommonController extends Base
         $insert_data = [];
         foreach ($likeData as $k => $v)
         {
-            $insert_data[] = [
-                'x_id' => $k,
-                'uid' => $v['uid'],
-                'time' => $v['time']
-            ];
+            foreach ($v as $key => $val)
+            {
+                $insert_data[] = [
+                    'x_id' => $k,
+                    'uid' => $val['uid'],
+                    'hanld_time' => $val['time'],
+                    'type' => 'like'
+                ];
+            }
         }
-        $filed = ['x_id','uid','time'];
-        Yii::$app->db->createCommand()
-        ->batchInsert("pay_store_like",$filed,$insert_data)
+        $filed = ['x_id','uid','hanld_time','type'];
+        Yii::$app->db3->createCommand()
+        ->batchInsert("user_like_share",$filed,$insert_data)
         ->execute();
     }
 
@@ -204,15 +212,20 @@ class CommonController extends Base
         $insert_data = [];
         foreach ($shareData as $k => $v)
         {
-            $insert_data[] = [
-                'x_id' => $k,
-                'uid' => $v['uid'],
-                'time' => $v['time']
-            ];
+            if(!$v) continue;
+            foreach ($v as $key => $val)
+            {
+                $insert_data[] = [
+                    'x_id' => $k,
+                    'uid' => $val['uid'],
+                    'hanld_time' => $val['time'],
+                    'type' => 'share'
+                ];
+            }
         }
-        $filed = ['x_id','uid','time'];
+        $filed = ['x_id','uid','hanld_time','type'];
         Yii::$app->db->createCommand()
-            ->batchInsert("pay_store_share",$filed,$insert_data)
+            ->batchInsert("user_like_share",$filed,$insert_data)
             ->execute();
     }
 

@@ -58,13 +58,16 @@ class Base extends ActiveController
     public function returnRuleErr($model)
     {
         $err = $model->getFirstErrors();
-        $erInfo = '';
-        if($err)
+        if(!empty($err))
         {
             foreach ($err as $k => $v)
             {
                 $erInfo = $k.':'.$v;
             }
+        }
+        else
+        {
+            $erInfo = '未知错误信息';
         }
         return $this->returnData(400,$erInfo);
     }
@@ -115,7 +118,7 @@ class Base extends ActiveController
         $a = $radLat1 - $radLat2;
         $b = $radLng1 - $radLng2;
         $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * 6378.137 * 1000;
-        return ($s / 1000) . 'km' ;
+        return round(($s / 1000),1) . 'km' ;
     }
 
 

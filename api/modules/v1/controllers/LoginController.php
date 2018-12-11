@@ -8,6 +8,7 @@
 namespace api\modules\v1\controllers;
 
 use api\models\LoginForm;
+use api\models\User;
 use Yii;
 use yii\web\Controller;
 
@@ -194,16 +195,33 @@ class LoginController extends Controller
     {
         $response = Yii::$app->response;
         $response->format = yii\web\Response::FORMAT_JSON;
-        if(!$data)
-        {
-            $data = new \stdClass();
-        }
+        if(!$data) $data = new \stdClass();
         $last['code'] = $code;
         $last['msg'] = $msg;
         $last['data'] = $data;
         return $last;
     }
 
+
+
+    /**
+     * 刷新accessToken
+     */
+    public function actionRefresh()
+    {
+        $accessToken = Yii::$app->request->headers->get('accessToken');
+        if(!$accessToken) return $this->returnData(400,'凭证错误');
+        $user = User::findIdentityByAccessToken($accessToken);
+        if(!$user) return $this->returnData(400,'凭证错误');
+        (new User())->apiToken();
+        $accessToken = LoginForm::$accessToken;
+        $data['accessToken'] = $accessToken;
+        Yii::$app->cache->set($accessToken,$user,7200);
+        Yii::$app->db->createCommand()
+        ->update("pay_user",['accessToken' => $accessToken],['id' => $user['id']])
+        ->execute();
+        return $this->returnData(200,'刷新成功',$data);
+    }
 
 
 }

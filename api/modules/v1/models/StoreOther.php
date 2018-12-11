@@ -13,13 +13,6 @@ use yii\db\Query;
 
 class StoreOther extends ActiveRecord
 {
-	
-
-	//数据库选择
-	public static function getDb()
-	{
-		return Yii::$app->db2;
-	}
 
 	//数据表
 	public static function tableName ()
@@ -42,20 +35,22 @@ class StoreOther extends ActiveRecord
         foreach ($storeData as $k => $v)
         {
             $headerData = $obj->headerImg($v['id']);
-            $otherData = $this->otherInfo($v['top_sort'],$v['score'],$v['two_sort']);
+            //$otherData = $this->otherInfo($v['top_sort'],$v['score'],$v['two_sort']);
+            $otherData = Store::instance()->getOtherInfo($v['id'],$v['top_sort'],$v['one_sort']);
             $last_data[] = [
                 's_id' => $v['id'],
                 'store_name' => $v['store_name'],
                 'address' => $v['address'],
-                'lat' => $v['lat'],
-                'lng' => $v['lng'],
-                'headerImg' => $headerData ? $headerData['img_url'] : "",
-                'one_sort' => $v['one_sort'],
-                'two_sort' => $v['two_sort'],
-                'pro_name' => $otherData[1],
+                'lat' => $v['lat'] ? $v['lat'] : 0,
+                'lng' => $v['lng'] ? $v['lng'] : 0,
+                'headerImg' => $headerData,
+                'sort_name' => $otherData[0] ? $otherData[0]['sort_name'] : "",
                 'score' => $v['score'],
-                'exp' => $otherData[0],
-                'type' => $otherData[2]
+                'type' => $v['top_sort'] == 2 ? 'hotel' : 'other',
+                'like_num' => $v['like_num'] ? $v['like_num'] : 0,
+                'share_num' => $v['share_num'] ? $v['share_num'] : 0,
+                'proData' => $otherData[1],
+                'msgData' => Store::instance()->msgData($v['id'])
             ];
         }
         return $last_data;
@@ -119,10 +114,10 @@ class StoreOther extends ActiveRecord
             }
             else
             {
-                $last_data[] = $this->pro($val['id']);
+                $storeData[$key]['proData'] = $this->pro($val['id']);
             }
         }
-        if($last_data) return (new StoreOther())->unified($last_data);
+        if($storeData) return (new StoreOther())->unified($storeData);
         return null;
     }
 
@@ -130,6 +125,9 @@ class StoreOther extends ActiveRecord
 
     /**
      * 房间详情
+     *
+     * @param    array   $roomDate   房间数据
+     * @return   array | null
      */
     public function roomDetails($roomDate)
     {
@@ -170,7 +168,8 @@ class StoreOther extends ActiveRecord
             'now' => $proData[2],
             'old' => $proData[1],
             'type' => $proData[3],
-            's_type' => 1
+            's_type' => 1,
+            's_id' => $s_id
         ];
         return $data;
     }
@@ -191,46 +190,396 @@ class StoreOther extends ActiveRecord
                 ->from("pay_hotel_room_spec")
                 ->where(['x_id' => $s_id])
                 ->andWhere(['status' => 4]);
-        if($limit) return $data = $data->limit($limit)->all();
-        return $data->all();
+        if($limit) return $data = $data->limit($limit)->all(Yii::$app->db2);
+        return $data->all(Yii::$app->db2);
+    }
+
+
+    /**
+     * 门店产品
+     *
+     * @param   int   $s_id    门店id
+     * @param   int   $type    门店类型
+     * @return  array | null
+     */
+    public function storePro($s_id,$type)
+    {
+        if($type == 2)
+        {
+            $allDays = $this->allDays($s_id);
+            $last_all = '';
+            if ($allDays)
+            {
+                foreach ($allDays as $key => $val)
+                {
+                    $last_all .= $val['spec_title'] . '￥' . $val['week_discount_price'];
+                }
+            }
+            $hourDays = $this->hourDays($s_id);
+            $hour_data = '';
+            if($hourDays)
+            {
+                foreach ($hourDays as $k => $val)
+                {
+                    $hour_data .= $val['spec_title'] . '￥' . $val['week_discount_price'];
+                }
+            }
+            return [
+                ['type' => 'all','name' => $last_all],
+                ['type' => 'hour','name' => $hour_data]
+            ];
+
+        }
+        else
+        {
+            $vouData = $this->vouchers($s_id);
+            $last_vou = '';
+            if($vouData)
+            {
+                foreach ($vouData as $k => $v)
+                {
+                    $last_vou .= $v['vouchers_name'] . ',';
+                }
+            }
+            $groupData = $this->group($s_id);
+            $last_group = '';
+            if($groupData)
+            {
+                foreach ($groupData as $k => $v)
+                {
+                    $last_group .= $v['group_name'].$v['group_price'].'元,';
+                }
+            }
+            $shopAdvert = Store::instance()->storeAdvert($s_id);
+            $checkData = $this->check($s_id);
+            $last_check = '';
+            if($checkData)
+            {
+                $dis_num = $this->getDiscount($checkData['dis_id']);
+                $last_check = '买单'.$dis_num.'折';
+            }
+            return [
+                ['type' => 1,'name' => trim($last_vou,',')],
+                ['type' => 2,'name' => trim($last_group,',')],
+                ['type' => 4,'name' => trim($shopAdvert,',')],
+                ['type' => 3,'name' => $last_check]
+            ];
+        }
+
+
     }
 
 
 
     /**
-     * 代金券详情
+     * 详情商品
+     *
+     * @param    int    $s_id    门店id
+     * @param    int    $type    门店类型
+     * @return   array | null
+     */
+    public function detailsPro($s_id, $type)
+    {
+        if($type == 2)
+        {
+
+        }
+        else
+        {
+            $checkData = $this->check($s_id);
+            $lastCheck = null;
+            if($checkData) $lastCheck = $this->dataFormat($checkData);
+            $vouData = $this->vouchers($s_id);
+            $lastVou = null;
+            if($vouData) $lastVou = $this->dataFormatV($vouData);
+            $groupData = $this->group($s_id);
+            $lastGroup = null;
+            if($groupData) $lastGroup = $this->dataFormatG($groupData);
+        }
+    }
+
+
+
+
+    /**
+     * 买单数据格式化
+     *
+     * @param    array    $checkData   买单数据
+     * @return   array | null
+     */
+    public function dataFormat($checkData)
+    {
+        $last_data['type'] = 3;
+        foreach ($checkData as $key => $val)
+        {
+            $dis_num = $this->getDiscount($val['dis_id']);
+            $last_data['name'] = $dis_num.'折扣优惠';
+            $rules = $this->proRules($val['id'],3);
+            if(!$rules) $last_data['rules'] = "每天00:00-24:00";
+            $last_data['rules'] = $this->checkRules($rules);
+        }
+        return $last_data;
+    }
+
+
+
+    /**
+     * 买单使用规则
+     *
+     * @param    array   $rules   使用规则
+     * @return   array | null
+     */
+    public function checkRules($rules)
+    {
+        $last_data = [];
+        if($rules['is_available'] === 1) $last_data['use_time'] = "每天00:00-24:00";
+        $ruleTime = $this->timeRules($rules['id']);
+        if($rules)
+        {
+            foreach ($ruleTime as $key => $val)
+            {
+                if($val['type'] == 2) $last_data['use_time'] = '每天'.date('H:i',$val['start_time']).'-'.date('H:i',$val['end_time']);
+            }
+        }
+        return $last_data;
+    }
+
+
+
+
+    /**
+     * 团购数据格式化
+     *
+     * @param    array    $groupData    团购数据
+     * @return   array | null
+     */
+
+    #TODO:团购数据格式化未完成
+    public function dataFormatG($groupData)
+    {
+        if(!$groupData) return null;
+        $last_data = [];
+        foreach ($groupData as $key => $val)
+        {
+            $last_rules = "";
+            $last_data[] = [
+                'name' => $val['use_max'].'人'.$val['group_name'],
+                'price' => $val['group_price'],
+                'buy_num' => $val['pay_num'],
+                'old_price' => $val['price'],
+                'rules' => $last_rules,
+                'id' => $val['project_id'],
+                'headerImg' => $val['img_url']
+            ];
+        }
+        return $last_data;
+    }
+
+
+
+    /**
+     * 代金券数据格式化
+     *
+     * @param    array   $vouData   代金券数据
+     * @return   array | null
+     */
+    public function dataFormatV($vouData)
+    {
+        $last_data = null;
+        foreach ($vouData as $key => $val)
+        {
+            $rules = $this->proRules($val['project_id'],1);
+            if(!$rules) $last_rules = null;else $last_rules = $this->vouRules($rules);
+            $last_data[] = [
+                'name' => $val['vouchers_name'],
+                'price' => $val['buy_price'],
+                'buy_num' => $val['sale_num'],
+                'old_price' => $val['face_val'],
+                'rules' => $last_rules,
+                'id' => $val['project_id']
+            ];
+        }
+        return $last_data;
+    }
+
+
+
+    /**
+     * 代金券使用规则
+     *
+     * @param    array   $rules   规则数据
+     * @return   array | null
+     */
+    public  function vouRules($rules)
+    {
+        $last_data = [];
+        if($rules['is_available'] === 1) $last_data['use_time'] = "周一至周日";
+        $ruleTime = $this->timeRules($rules['id']);
+        if($rules)
+        {
+            foreach ($ruleTime as $key => $val)
+            {
+                if($val['type'] == 2) $last_data['use_time'] = '每天'.date('H:i',$val['start_time']).'-'.date('H:i',$val['end_time']);
+            }
+        }
+        if($rules['is_overlying'] == 1) $last_data['overlaying'] = $rules['overlying_other']; else $last_data['overlaying'] = "不可叠加使用";
+
+        return $last_data;
+    }
+
+
+
+    /**
+     * 代金券数据
+     *
+     * @param   int    $s_id    门店id
+     * @return  array | null
      */
     public function vouchers($s_id)
     {
-
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_project_s_id as project")
+                ->leftJoin("pay_store_vouchers as vou",'vou.id=project.project_id')
+                ->where(['project.x_id' => $s_id])
+                ->andWhere(['project.type' => 1])
+                ->all();
+        return $data;
     }
 
 
     /**
-     * 团购详情
+     * 团购数据
+     *
+     * @param   int   $s_id   门店id
+     * @return  array | null
      */
     public function group($s_id)
     {
-
+        $data = (new Query())
+            ->select("*")
+            ->from("pay_store_project_s_id as project")
+            ->leftJoin("pay_store_group as group",'group.id=project.project_id')
+            ->where(['project.x_id' => $s_id])
+            ->andWhere(['project.type' => 2])
+            ->all();
+        return $data;
     }
 
 
     /**
-     * 买单详情
+     * 买单数据
+     *
+     * @param   int   $s_id   门店id
+     * @return  array | null
      */
-    public function check()
+    public function check($s_id)
     {
-
+        $data = (new Query())
+            ->select("*")
+            ->from("pay_store_project_s_id as project")
+            ->leftJoin("pay_store_check as group",'group.id=project.project_id')
+            ->where(['project.x_id' => $s_id])
+            ->andWhere(['project.type' => 3])
+            ->all();
+        return $data;
     }
+
 
 
     /**
-     * 单点详情
+     * 获取折扣
+     *
+     * @param   int    $dis_id    折扣id
+     * @return  string
      */
-    public function shopping()
+    public function getDiscount($dis_id)
     {
-
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_discount")
+                ->where(['id' => $dis_id])
+                ->one();
+        return $data ? $data['dis_num'] /10 : 0;
     }
+
+
+
+    /**
+     * 全天房数据
+     *
+     * @param   int    $s_id    门店id
+     * @return  array | null
+     */
+    public function allDays($s_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_hotel_room_spec")
+                ->where(['x_id' => $s_id])
+                ->andWhere(['is_all_pay' => 1])
+                ->all(Yii::$app->db2);
+        return $data;
+    }
+
+
+
+    /**
+     * 钟点房数据
+     *
+     * @param    int    $s_id    门店id
+     * @return   array | null
+     */
+    public function hourDays($s_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_hotel_room_spec")
+                ->where(['x_id' => $s_id])
+                ->andWhere(['is_all_pay' => 2])
+                ->all(Yii::$app->db2);
+        return $data;
+    }
+
+
+
+    /**
+     * 产品使用规则
+     *
+     * @param    int    $p_id    产品id
+     * @param   int    $type    产品类型
+     * @return   array | null
+     */
+    public function proRules($p_id, $type)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_project_rule")
+                ->where(['p_id' => $p_id])
+                ->andWhere(['type' => $type])
+                ->one();
+        return $data;
+    }
+
+
+
+
+    /**
+     * 使用时间限制
+     *
+     * @param   int   $rule_id    规则id
+     * @return  array | null
+     */
+    public function timeRules($rule_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_rule_time")
+                ->where(['rule_id' => $rule_id])
+                ->all();
+        return $data;
+    }
+
 
 
 
