@@ -54,7 +54,7 @@ class NearbyController extends Base
             $storeData = $model->nearbyPage();
             if(!$storeData) return $this->returnData(0,'数据为空');
             $obj = new StoreOther();
-            $data = $obj->getPro($storeData);
+            $data = $obj->getPro($storeData,'index');
             if(!$data) return $this->returnData(0,'数据为空');
             foreach ($data as $k => $v)
             {

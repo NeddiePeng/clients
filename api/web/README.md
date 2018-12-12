@@ -430,11 +430,15 @@ addr：地区   数据格式【{'addr_top':'hot','addr_two':12}】
             "proData": [
                 {
                     "type": 1,
-                    "name": "代金券8代10,代金券9代10,代金券80代100,代金券80代100,代金券80代100,代金券80.00代100,代金券5代10,代金券2代10,代金券80代100,代金券150代200,代金券30代50,代金券11代50,代金券88代200,代金券44代100,代金券44.00代100,代金券44.00代200,代金券44.00代200,代金券44.00代200,代金券44.00代100,代金券5代50,代金券5代50,代金券5代50,代金券5代50,代金券44.00代200,代金券5.00代100,代金券44.00代100,代金券44.00代100,代金券8.00代200,代金券8.00代200,代金券8.00代200,代金券8888代200,代金券999代200,代金券999代200,代金券999代200,代金券99代200,代金券99代200,代金券80.00代100,代金券5.00代200,代金券44代100,代金券8.00代200,代金券30.00代200"
+                    "name": "代金券30.00代200",
+                    "now": 50,
+                    "old": 100
                 },
                 {
                     "type": 2,
-                    "name": "肥牛火锅5.00元,香辣火锅串串香120.00元,头木木木欧诺欧诺模特扣女头目木偶剧女头木偶剧巨幕母女多头木木木木木木诺咯哈哈怕啥头部欧诺婆婆7轮婆婆流量监控哦看看咯坡头快就你借了阿拉车哦孙0哦李0DJ死了算了色就是色阿尔俄罗斯lesser俄罗斯1篇咯特略哭了太苦了特步阿福恶露230.00元,诺某某诺图谋哦哦align30.00元,哦哟一直送膜恶魔眼一岁李敏都无语77.00元,lz五突突突YY哦摩托木木木27.00元,阿鲁特卡卡头破噜噜噜80.00元,哦依稀贴膜哄哄你嘻嘻嘻嘻嗯呀智障一样450.00元,哦去我让学下去呜呜呜40.00元,哈哈哈哈80.00元,1111100.00元,这是车饰90.00元,测试套餐100.00元,仅售259！每一天便利店100减2098.00元,111.00元,团购123.00元,八人套12.00元,阿达团购656.00元,0021223.00元,一盘鲜花2.00元,Wang21.00元"
+                    "name": ",一盘鲜花2.00元,Wang21.00元",
+                    "now": 50,
+                    "old": 100
                 },
                 {
                     "type": 4,
@@ -456,6 +460,200 @@ addr：地区   数据格式【{'addr_top':'hot','addr_two':12}】
 }
 ```
 
+
+
+####门店详情
+
+*Url:http://clients.qmwjj.cc/v1/store-details*
+
+*Method:GET*
+
+*GetParam:*
+```text
+lat:纬度
+
+lng:经度
+
+s_id:门店id
+```
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "获取成功",
+    "data": {
+        "infoData": {
+            "s_id": "31",
+            "store_name": "每一天便利店",//门店名称
+            "score": "0",//分数
+            "sort_name": "",//分类名
+            "per_capita": 100,//人均
+            "mobile": "15029958140",//电话
+            "do_business_time": "营业中:18:06-18:06",
+            "address": "大明宫万达广场1号门",//地址
+            "Notice": "欢迎光临！",//公告
+            "headerImgData": {//图片数据
+                "imgUrl": "http://store.qmwjj.cc/storeImg/Atlas/20180904170144_977.jpg",
+                "count": 3
+            },
+            "distance": "3.1km"//距离
+        },
+        "proData": {
+            "check": null,//买单数据
+            "vouchers": [//代金券数据
+                {
+                    "name": "代金券8代10",
+                    "price": "8.00",
+                    "buy_num": "0",
+                    "old_price": "10",
+                    "rules": {
+                        "overlaying": ""
+                    },
+                    "id": "74"
+                }
+            ],
+            "group": [//团购数据
+                {
+                    "name": "2人肥牛火锅",
+                    "price": "5.00",
+                    "buy_num": "0",
+                    "old_price": "12.00",
+                    "rules": [],
+                    "id": "7",
+                    "headerImg": "http://store.qmwjj.cc/storeImg/Group_img/20181008102321_504.jpg"
+                }
+            ]
+        }
+    }
+}
+```
+
+
+####商品详情center数据
+
+*Url:http://clients.qmwjj.cc/v1/pro-details*
+
+*Method:GET*
+
+*GetParam:*
+```text
+s_id:门店id
+
+id:商品id
+
+pro_type:商品类型【1：代金券2：团购3：买单】
+```
+
+*请求示例：http://clients.qmwjj.cc/v1/pro-details?s_id=31&id=10&pro_type=1*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "获取成功",
+    "data": {
+        "topData": {
+            "overlying": "叠加使用限制",
+            "bespeak": "需提前预约",
+            "refund": "随时退",
+            "id": "10",//商品id
+            "imgUrl": {//如果是代金券该数据不会返回
+                "imgList": [
+                    {
+                        "img": "http://store.qmwjj.cc/storeImg/Dishes/20181008174841_576.jpg",
+                        "name": "红烧鸡块好自为之"
+                    }
+                ],
+                "count": 8
+            },
+            "groupContent": [//如果是代金券该数据不会返回
+                {
+                    "sort_name": "团购产品",
+                    "selectType": "全部可用",
+                    "content": [
+                        {
+                            "name": "红烧鸡块好自为之",
+                            "num": "5",
+                            "price": "70.40"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rulesData": {
+            "validityTime": "2018.10.10至2018.10.12",
+            "unavailableTime": "法定节假日不可用",
+            "useTime": "",
+            "useRules": [
+                "需提前预约",
+                "使用叠加限制",
+                "支持找零",
+                "全场通用",
+                "不提供发票",
+                ""
+            ]
+        }
+    }
+}
+```
+
+
+####门店评论
+
+*Url:*
+
+*Method:GET*
+
+*GetParam:*
+```text
+page:页码
+
+s_id:门店id
+
+nav_type:评论类型【all:全部,img:晒图,nice：好评,bed：差评】
+```
+
+*请求示例：http://clients.qmwjj.cc/v1/comments/img/1/31   【地址说明：参数顺序依次为nav_type->page->s_id】*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "获取成功",
+    "data": [
+        {
+            "id": "1",//评论id
+            "pro_id": "10",
+            "type": "2",
+            "time": "2018.08.17",//评论时间
+            //评论内容
+            "comment_text": "这是测试评论这是测试评论这是测试评论这是测试评论这是测试评论,这是测试评论,这是测试评论,这是测试评论,这是测试评论,这是测试评论,这是测试评论,这是测试评论",
+            "Star_num": "1",//分数
+            "userData": {//用户西悉尼
+                "nickname": "月亮瓦",
+                "header_img": "http://store.qmwjj.cc/storeImg/Dishes/20180810094333_829.jpg"
+            },
+            "is_be_reply": "1",
+            "imgData": [//图片信息
+                {
+                    "id": "3",
+                    "comment_id": "1",
+                    "img_url": "http://store.qmwjj.cc/storeImg/Dishes/20180810094333_829.jpg",
+                    "status": "1"
+                }
+            ],
+            "replyData": [//回复数据
+                {
+                    "nickname": "商家回复",
+                    "comment_text": "这是商家回复",
+                    "time": "2018.08.17"
+                }
+            ],
+            "proName": "诺某某诺图谋哦哦align"//评论商品
+        }
+    ]
+}
+```
 
 ####订单
 

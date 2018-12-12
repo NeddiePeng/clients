@@ -129,8 +129,8 @@ class Store extends ActiveRecord
     public function nearbyPraise()
     {
         $scope = Base::calcScope($this->lat, $this->lng);
-        $sql = 'SELECT * FROM `'. static::tableName() .'` WHERE `lat` < '.$scope['maxLat'].' and `lat` > '.$scope['minLat'];
-        $sql .= ' and `lng` < '.$scope['maxLng'].' and `lng` > '.$scope['minLng'];
+        $sql = 'SELECT * FROM `'. static::tableName() .'` WHERE `lat` <= '.$scope['maxLat'].' and `lat` >= '.$scope['minLat'];
+        $sql .= ' and `lng` <= '.$scope['maxLng'].' and `lng` >= '.$scope['minLng'];
         $data = Yii::$app->db->createCommand($sql)->queryAll();
         return $data;
     }
@@ -328,12 +328,13 @@ class Store extends ActiveRecord
             'headerImg' => $headerData,
             'sort_name' => $otherData[0] ? $otherData[0]['sort_name'] : "",
             'score' => $data['score'],
-            'type' => $data['top_sort'] === 2 ? 'hotel' : 'other',
+            'type' => $data['top_sort'] == 2 ? 'hotel' : 'other',
             'like_num' => $data['like_num'] ? $data['like_num'] : 0,
             'share_num' => $data['share_num'] ? $data['share_num'] : 0,
             'proData' => $otherData[1],
             'msgData' => $msgData
         ];
+
     }
 
 
@@ -451,13 +452,17 @@ class Store extends ActiveRecord
      * @param    int    $sort_two   二级分类
      * @return   array | null
      */
-    public function getOtherInfo($s_id, $top_sort, $sort_two)
+    public function getOtherInfo($s_id, $top_sort, $sort_two, $type_select = null)
     {
         //分类
         $type = 'other';
         if ($top_sort == 2) $type = 'hotel';
         $sortData = $this->storeSort($type,$sort_two);
-        $sortPro = StoreOther::instance()->storePro($s_id,$type);
+        if($type_select){
+            $sortPro = StoreOther::instance()->proFormat($s_id,$top_sort);
+        }else{
+            $sortPro = StoreOther::instance()->storePro($s_id,$top_sort);
+        }
         return [$sortData, $sortPro];
     }
 

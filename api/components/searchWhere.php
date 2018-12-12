@@ -246,6 +246,36 @@ class searchWhere extends Component
 
 
 
+    /**
+     * 门店评论搜索条件
+     *
+     * @param    array   $params   参数
+     * @return   array
+     */
+    public function comments($params)
+    {
+        switch ($params['nav_type'])
+        {
+            case 'all':
+                $where = "1=1";
+                break;
+            case 'img':
+                $where = ['is_img' => 1];
+                break;
+            case 'nice':
+                $where = "Star_num >= 4";
+                break;
+            case 'bed':
+                $where = "Star_num <= 3";
+                break;
+            default:
+                $where = "1=1";
+        }
+        return $where;
+    }
+
+
+
 
 
 

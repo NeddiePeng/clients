@@ -28,7 +28,7 @@ class StoreOther extends ActiveRecord
      * @param   array   $storeData   门店数据集合
      * @return  array
      */
-	public function unified($storeData)
+	public function unified($storeData,$type = null)
     {
         $last_data = [];
         $obj = new Store();
@@ -36,14 +36,14 @@ class StoreOther extends ActiveRecord
         {
             $headerData = $obj->headerImg($v['id']);
             //$otherData = $this->otherInfo($v['top_sort'],$v['score'],$v['two_sort']);
-            $otherData = Store::instance()->getOtherInfo($v['id'],$v['top_sort'],$v['one_sort']);
+            $otherData = Store::instance()->getOtherInfo($v['id'],$v['top_sort'],$v['one_sort'],$type);
             $last_data[] = [
                 's_id' => $v['id'],
                 'store_name' => $v['store_name'],
                 'address' => $v['address'],
                 'lat' => $v['lat'] ? $v['lat'] : 0,
                 'lng' => $v['lng'] ? $v['lng'] : 0,
-                'headerImg' => $headerData,
+                'headerImg' => $headerData ? [$headerData['img_url']] : null,
                 'sort_name' => $otherData[0] ? $otherData[0]['sort_name'] : "",
                 'score' => $v['score'],
                 'type' => $v['top_sort'] == 2 ? 'hotel' : 'other',
@@ -102,7 +102,7 @@ class StoreOther extends ActiveRecord
      * @param    array    $storeData    门店数据
      * @return   array | null
      */
-	public function getPro($storeData)
+	public function getPro($storeData,$type = null)
     {
         $last_data = [];
         foreach ($storeData as $key => $val)
@@ -117,7 +117,7 @@ class StoreOther extends ActiveRecord
                 $storeData[$key]['proData'] = $this->pro($val['id']);
             }
         }
-        if($storeData) return (new StoreOther())->unified($storeData);
+        if($storeData) return (new StoreOther())->unified($storeData,$type);
         return null;
     }
 
@@ -195,6 +195,102 @@ class StoreOther extends ActiveRecord
     }
 
 
+
+    /**
+     * 附近商品格式化
+     *
+     * @param   int   $s_id    门店id
+     * @param   int   $type    门店类型
+     * @return   array | null
+     */
+    public function proFormat($s_id,$type)
+    {
+        if($type == 2)
+        {
+            $allDays = $this->allDays($s_id);
+            $last_all = '';
+            $all_old = $all_now = 0;
+            if ($allDays)
+            {
+                foreach ($allDays as $key => $val)
+                {
+                    $last_all = $val['spec_title'] . '￥' . $val['week_discount_price'];
+                    $all_old = 100;
+                    $all_now = 50;
+                }
+            }
+            $hourDays = $this->hourDays($s_id);
+            $hour_data = '';
+            $old = $now = 0;
+            if($hourDays)
+            {
+                foreach ($hourDays as $k => $val)
+                {
+                    $hour_data = $val['spec_title'] . '￥' . $val['week_discount_price'];
+                    $old = 100;
+                    $now = 50;
+                }
+            }
+            return [
+                [
+                    'type' => 'all',
+                    'name' => $last_all,
+                    'old' => $all_old,
+                    'now' => $all_now
+                ],
+                [
+                    'type' => 'hour',
+                    'name' => $hour_data,
+                    'old' => $old,
+                    'now' => $now
+                ]
+            ];
+
+        }
+        else
+        {
+            $vouData = $this->vouchers($s_id);
+            $last_vou = '';
+            $v_old = $v_now = $old = $now = 0;
+            if($vouData)
+            {
+                foreach ($vouData as $k => $v)
+                {
+                    $last_vou = $v['vouchers_name'];
+                    $v_old = 100;
+                    $v_now = 50;
+                }
+            }
+            $groupData = $this->group($s_id);
+            $last_group = '';
+            if($groupData)
+            {
+                foreach ($groupData as $k => $v)
+                {
+                    $last_group = $v['group_name'].$v['group_price'] ? $v['group_name'].$v['group_price'].'元' : "";
+                    $old = 100;
+                    $now = 50;
+                }
+            }
+            $shopAdvert = Store::instance()->storeAdvert($s_id);
+            $checkData = $this->check($s_id);
+            $last_check = '';
+            if($checkData)
+            {
+                $dis_num = $this->getDiscount($checkData['dis_id']);
+                $last_check = '买单'.$dis_num.'折';
+            }
+            $last_return_data = [];
+            if(trim($last_vou,',')) $last_return_data[] = ['type' => 1,'name' => trim($last_vou,','),'now' => $v_now,'old' => $v_old];
+            if(trim($last_group,',')) $last_return_data[] = ['type' => 2,'name' => trim($last_group,','),'now' => $now,'old' => $old];
+            if(trim($shopAdvert,',')) $last_return_data[] = ['type' => 4,'name' => trim($shopAdvert,',')];
+            if($last_check) $last_return_data[] = ['type' => 3,'name' => $last_check];
+            return $last_return_data;
+        }
+
+    }
+
+
     /**
      * 门店产品
      *
@@ -258,6 +354,12 @@ class StoreOther extends ActiveRecord
                 $dis_num = $this->getDiscount($checkData['dis_id']);
                 $last_check = '买单'.$dis_num.'折';
             }
+            $last_return_data = [];
+            /*if(trim($last_vou,',')) $last_return_data[] = ['type' => 1,'name' => trim($last_vou,',')];
+            if(trim($last_group,',')) $last_return_data[] = ['type' => 2,'name' => trim($last_group,',')];
+            if(trim($shopAdvert,',')) $last_return_data[] = ['type' => 4,'name' => trim($shopAdvert,',')];
+            if($last_check) $last_return_data[] = ['type' => 3,'name' => $last_check];
+            return $last_return_data;*/
             return [
                 ['type' => 1,'name' => trim($last_vou,',')],
                 ['type' => 2,'name' => trim($last_group,',')],
@@ -282,7 +384,7 @@ class StoreOther extends ActiveRecord
     {
         if($type == 2)
         {
-
+            return null;
         }
         else
         {
@@ -295,6 +397,11 @@ class StoreOther extends ActiveRecord
             $groupData = $this->group($s_id);
             $lastGroup = null;
             if($groupData) $lastGroup = $this->dataFormatG($groupData);
+            return [
+                'check' => $lastCheck,
+                'vouchers' => $lastVou,
+                'group' => $lastGroup
+            ];
         }
     }
 
@@ -309,7 +416,7 @@ class StoreOther extends ActiveRecord
      */
     public function dataFormat($checkData)
     {
-        $last_data['type'] = 3;
+        $last_data = [];
         foreach ($checkData as $key => $val)
         {
             $dis_num = $this->getDiscount($val['dis_id']);
@@ -353,15 +460,14 @@ class StoreOther extends ActiveRecord
      * @param    array    $groupData    团购数据
      * @return   array | null
      */
-
-    #TODO:团购数据格式化未完成
     public function dataFormatG($groupData)
     {
         if(!$groupData) return null;
         $last_data = [];
         foreach ($groupData as $key => $val)
         {
-            $last_rules = "";
+            $rules = $this->proRules($val['project_id'],2);
+            $last_rules = $this->groupRules($rules);
             $last_data[] = [
                 'name' => $val['use_max'].'人'.$val['group_name'],
                 'price' => $val['group_price'],
@@ -371,6 +477,32 @@ class StoreOther extends ActiveRecord
                 'id' => $val['project_id'],
                 'headerImg' => $val['img_url']
             ];
+        }
+        return $last_data;
+    }
+
+
+
+
+    /**
+     * 团购使用规则
+     *
+     * @param     array    $rules   使用规则
+     * @return    array | null
+     */
+    public function groupRules($rules)
+    {
+        $last_data = [];
+        if(!$rules) return null;
+        if($rules['is_available'] === 1) $last_data['use_time'] = "周一至周日";
+        $ruleTime = $this->timeRules($rules['id']);
+        if($ruleTime)
+        {
+            foreach ($ruleTime as $key => $val)
+            {
+                $last_data['use_time'] = date('Y-m-d',$val['start_time']);
+                $last_data['use_time'] .= '至'.date("Y-m-d",$val['end_time']);
+            }
         }
         return $last_data;
     }

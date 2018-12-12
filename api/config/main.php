@@ -95,6 +95,9 @@ return [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET v1/comments/<nav_type:\w+>/<page:\d+>/<s_id:\d+>' => 'v1/product/comment',
+                'GET v1/pro-details' => 'v1/product/pro-details',
+                'GET v1/store-details' => 'v1/store/store-details',
                 'GET v1/synchro' => 'v1/common/synchro',
                 'GET v1/refreshs' => 'v1/login/refresh',
                 'POST v1/stores' => 'v1/store/index',

@@ -25,6 +25,7 @@ return [
     'page' => '分页',
     'accessToken' => '授权码',
     'order_id' => '订单号',
+    'id' => '产品id',
 
 
     //附近
@@ -32,6 +33,7 @@ return [
     'sort_two' => '二级分类',
     'sort_id' => '分类ID',
     's_id' => "门店id",
-    'type' => "操作类型"
+    'type' => "操作类型",
+    'pro_type' => '产品类型'
 
 ];

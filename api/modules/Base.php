@@ -130,7 +130,7 @@ class Base extends ActiveController
      * @param float $radius 半径
      * @return array 范围数组
      */
-    public static function calcScope($lat, $lng, $radius = 1000)
+    public static function calcScope($lat, $lng, $radius = 20000)
     {
         $degree = (24901*1609)/360.0;
         $dpmLat = 1/$degree;

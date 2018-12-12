@@ -77,4 +77,7 @@ AppAsset::register($this);
 <?php $this->endBody() ?>
 </body>
 </html>
+<script>
+    JSON.stringify()
+</script>
 <?php $this->endPage() ?>

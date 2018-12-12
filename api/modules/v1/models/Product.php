@@ -13,8 +13,6 @@ use yii\db\Query;
 class Product extends ActiveRecord
 {
 
-
-
     /**
      * 代金券数据
      *
@@ -47,6 +45,25 @@ class Product extends ActiveRecord
                 ->from("pay_store_group")
                 ->where(['id' => $p_id])
                 ->one();
+        return $data;
+    }
+
+
+
+    /**
+     * 团购内容商品图
+     *
+     * @param    string    $p_id    商品id
+     * @return   array | null
+     */
+    public static function groupContent($p_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_group_content as content")
+                ->leftJoin("pay_store_dishes as dishes",'dishes.id=content.p_id')
+                ->where(['content.g_id' => $p_id])
+                ->all();
         return $data;
     }
 

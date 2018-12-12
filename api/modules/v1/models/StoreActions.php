@@ -97,4 +97,22 @@ class StoreActions extends ActiveRecord
     }
 
 
+
+    /**
+     * 门店手机号
+     *
+     * @param    int     $s_id    门店id
+     * @return   array | null
+     */
+    public function storeMobile($s_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_mobile")
+                ->where(['x_id' => $s_id])
+                ->all();
+        return $data;
+    }
+
+
 }

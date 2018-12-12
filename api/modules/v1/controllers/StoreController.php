@@ -10,6 +10,7 @@ namespace api\modules\v1\controllers;
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
 use api\modules\v1\models\Store;
+use api\modules\v1\models\StoreActions;
 use api\modules\v1\models\StoreOther;
 
 class StoreController extends Base
@@ -85,7 +86,30 @@ class StoreController extends Base
             $store = $model->storeDetails();
             if(!$store) return $this->returnData(0,'数据为空');
             $sortData = Store::instance()->storeSort($store['top_sort'],$store['one_sort']);
-            $storeProData = "";
+            $storeProData = StoreOther::instance()->detailsPro($store['id'],$store['top_sort']);
+            $storeAlbum = Store::instance()->getStoreAlbum($store['id']);
+            $storeMobile = StoreActions::instance()->storeMobile($store['id']);
+            $infoData = [
+                's_id' => $store['id'],
+                'store_name' => $store['store_name'],
+                'score' => $store['score'],
+                'sort_name' => $sortData ? $sortData['sort_name'] : "",
+                'per_capita' => 100,
+                'mobile' => $storeMobile ? $storeMobile[0]['mobile'] : '',
+                'do_business_time' => '营业中:'.date('H:i',$store['open_start']).'-'.date('H:i',$store['open_end']),
+                'address' => $store['address'],
+                'Notice' => $store['Notice'],
+                'headerImgData' => [
+                    'imgUrl' => $storeAlbum ? $storeAlbum[0]['img_url'] : "",
+                    'count' => count($storeAlbum ? $storeAlbum : [])
+                ],
+                'distance' => $this->sum($params['lat'],$params['lng'],$store['lat'],$store['lng']),
+                'lat' => $store['lat'],
+                'lng' => $store['lng']
+            ];
+            $data['infoData'] = $infoData;
+            $data['proData'] = $storeProData;
+            return $this->returnData(200,'获取成功',$data);
         }
         return $this->returnRuleErr($model);
     }
