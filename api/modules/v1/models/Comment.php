@@ -38,6 +38,7 @@ class Comment extends ActiveRecord
     /**
      * 商品评论
      *
+     * @param  array   $params    参数集合
      * @return array | null
      */
     public function getComments($params)

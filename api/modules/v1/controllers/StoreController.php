@@ -89,6 +89,12 @@ class StoreController extends Base
             $storeProData = StoreOther::instance()->detailsPro($store['id'],$store['top_sort']);
             $storeAlbum = Store::instance()->getStoreAlbum($store['id']);
             $storeMobile = StoreActions::instance()->storeMobile($store['id']);
+            $storeInfo = [
+                'sort_list' => $store['store_name'],
+                'business_time' =>  '早'.date('H:i',$store['open_start']).'-晚'.date('H:i',$store['open_end']),
+                'otherBusiness' => "免费",
+                'actively' => []
+            ];
             $infoData = [
                 's_id' => $store['id'],
                 'store_name' => $store['store_name'],
@@ -107,9 +113,39 @@ class StoreController extends Base
                 'lat' => $store['lat'],
                 'lng' => $store['lng']
             ];
+            $commentScore = [
+                'totalScore' => $store['score'],
+                'otherScore' => [
+                    'flavor' => 0,
+                    'service' => 0,
+                    'scenario' => 0
+                ]
+            ];
             $data['infoData'] = $infoData;
+            $data['otherInfo'] = $storeInfo;
+            $data['commentScore'] = $commentScore;
             $data['proData'] = $storeProData;
             return $this->returnData(200,'获取成功',$data);
+        }
+        return $this->returnRuleErr($model);
+    }
+
+
+
+    /**
+     * 商家相册
+     */
+    public function actionStoreImg()
+    {
+        $params = $this->params;
+        $model = new $this->modelClass(['scenario' => 'store-img']);
+        $loadParam = $model->load($params,'');
+        if($loadParam && $model->validate())
+        {
+            $data = $model->getImgList();
+            if(!$data) return $this->returnData(0,'数据为空');
+            $lastData['imgList'] = $data;
+            return $this->returnData(200,'获取成功',$lastData);
         }
         return $this->returnRuleErr($model);
     }

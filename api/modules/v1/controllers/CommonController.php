@@ -8,6 +8,7 @@
 namespace api\modules\v1\controllers;
 
 use api\models\User;
+use api\modules\v1\models\StoreActions;
 use api\modules\v1\models\UserActions;
 use Yii;
 use api\behaviors\TokenBehavior;
@@ -45,6 +46,32 @@ class CommonController extends Base
         // 注销系统自带的实现方法
         unset($actions['index']);
         return $actions;
+    }
+
+
+
+
+    /**
+     * 二级分类 & 商圈
+     */
+    public function actionSortDistrict()
+    {
+        $params = $this->params;
+        $model = new $this->modelClass(['scenario' => 'business']);
+        $loadParam = $model->load($params,'');
+        if($loadParam && $model->validate())
+        {
+            $data = $model->businessData();
+            $lastData = $model->optimize($data);
+            $sortData = $model->sortData();
+            $sortStoreData = StoreActions::instance()->sortStore($sortData);
+            $returnData = [
+                'addrData' => $lastData,
+                'sortData' => $sortStoreData
+            ];
+            return $this->returnData(200,'success',$returnData);
+        }
+        return $this->returnRuleErr($model);
     }
 
 

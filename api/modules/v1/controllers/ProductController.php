@@ -78,6 +78,25 @@ class ProductController extends Base
 
 
 
+    /**
+     * 各类型产品列表数据
+     */
+    public function actionProList()
+    {
+        $params = $this->params;
+        $model = new $this->modelClass(['scenario' => 'pro-list']);
+        $loadParam = $model->load($params,'');
+        if($loadParam && $model->validate())
+        {
+            $proData = $model->proData();
+            if(!$proData)return $this->returnData(0,'数据为空');
+            return $this->returnData(200,'获取成功',$proData);
+        }
+        return $this->returnRuleErr($model);
+    }
+
+
+
 
     /**
      * 记录浏览记录

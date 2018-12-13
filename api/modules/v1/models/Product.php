@@ -13,6 +13,27 @@ use yii\db\Query;
 class Product extends ActiveRecord
 {
 
+
+    /**
+     * 所有单品
+     *
+     * @param    int    $s_id   门店id
+     * @return   array | null
+     */
+    public static function dishesData($s_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_dishes")
+                ->where(['x_id' => $s_id])
+                ->andWhere(['status' => 1])
+                ->all();
+        return $data;
+    }
+
+
+
+
     /**
      * 代金券数据
      *

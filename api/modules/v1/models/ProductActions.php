@@ -30,8 +30,81 @@ class ProductActions extends ActiveRecord
     public function rules()
     {
         return [
-            [['s_id','id','pro_type'],'required','on' => 'pro-details']
+            [['s_id','id','pro_type'],'required','on' => 'pro-details'],
+            [['s_id','pro_type'],'required','on' => 'pro-list']
         ];
+    }
+
+
+
+    /**
+     * 商品数据
+     *
+     * @return   array | null
+     */
+    public function proData()
+    {
+        switch ($this->pro_type)
+        {
+            case 1:
+                $data = StoreOther::instance()->vouchers($this->s_id);
+                $lastData = $this->vouLast($data);
+                break;
+            case 2:
+                $data = StoreOther::instance()->group($this->s_id);
+                $lastData = $this->groupLast($data);
+                break;
+            case 4:
+                $lastData = StoreOther::instance()->shopping($this->s_id);
+                break;
+            default:
+                $lastData = null;
+        }
+        return $lastData;
+    }
+
+
+    /**
+     * 团购
+     *
+     * @param    array    $data   团购数据
+     * @return   array | null
+     */
+    public function groupLast($data)
+    {
+        if(!$data) return null;
+        $last = [];
+        foreach ($data as $k => $v)
+        {
+            $last[] = [
+                'id' => $v['id'],
+                'name' => $v['group_name']
+            ];
+        }
+        return $last;
+    }
+
+
+
+
+    /**
+     * 代金券
+     *
+     * @param    array    $data   代金券数据
+     * @return   array | null
+     */
+    public function vouLast($data)
+    {
+        if(!$data) return null;
+        $last = null;
+        foreach ($data as $k => $v)
+        {
+            $last[] = [
+                'id' => $v,
+                'name' => $v['vouchers_name']
+            ];
+        }
+        return $last;
     }
 
 

@@ -38,7 +38,8 @@ class Store extends ActiveRecord
     {
         return [
             [['clients_id','lat','lng'],'required','on' => 'index-like'],
-            [['lat','lng','page','top_sort','sort_two'],'required','on' => 'nearby']
+            [['lat','lng','page','top_sort','sort_two'],'required','on' => 'nearby'],
+            [['lat','lng'],'required','on' => 'store']
         ];
     }
 

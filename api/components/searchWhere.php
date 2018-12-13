@@ -149,7 +149,7 @@ class searchWhere extends Component
      */
     public function storeAddr($params)
     {
-        $scope = $this->Range($params,2000);
+        $scope = $this->Range($params,5000);
         if(!isset($params['addr']))
         {
             return $scope;

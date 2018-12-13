@@ -473,7 +473,7 @@ class StoreOther extends ActiveRecord
                 'price' => $val['group_price'],
                 'buy_num' => $val['pay_num'],
                 'old_price' => $val['price'],
-                'rules' => $last_rules,
+                'rules' => $last_rules ? $last_rules : new \stdClass(),
                 'id' => $val['project_id'],
                 'headerImg' => $val['img_url']
             ];
@@ -554,7 +554,7 @@ class StoreOther extends ActiveRecord
                 if($val['type'] == 2) $last_data['use_time'] = '每天'.date('H:i',$val['start_time']).'-'.date('H:i',$val['end_time']);
             }
         }
-        if($rules['is_overlying'] == 1) $last_data['overlaying'] = $rules['overlying_other']; else $last_data['overlaying'] = "不可叠加使用";
+        if($rules['is_overlying'] == 1) $last_data['overlaying'] = $rules['overlying_other'] ? '可叠加使用'.$rules['overlying_other'].'张' : "不可叠加使用"; else $last_data['overlaying'] = "不可叠加使用";
 
         return $last_data;
     }
@@ -615,6 +615,94 @@ class StoreOther extends ActiveRecord
             ->andWhere(['project.type' => 3])
             ->all();
         return $data;
+    }
+
+    public $dishesData;
+    public $sortData = [];
+
+    /**
+     * 购物车数据
+     *
+     * @param    int    $s_id   门店id
+     * @return   array | null
+     */
+    public function shopping($s_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_shopping")
+                ->where(['x_id' => $s_id])
+                ->orderBy("level DESC")
+                ->all();
+        if(!$data) return null;
+        foreach ($data as $key => $val)
+        {
+            if(in_array($val['sort_id'],$this->sortData))
+            {
+                $this->dishesData[$val['sort_id']][] = [
+                    'id' => $val['p_id'],
+                    'is_hot' => $val['is_hot']
+                ];
+            }
+            else
+            {
+                $this->sortData[] = $val['sort_id'];
+                $this->dishesData[$val['sort_id']][] = [
+                    'id' => $val['p_id'],
+                    'is_hot' => $val['is_hot']
+                ];
+            }
+        }
+        return $this->dishesDetails();
+    }
+
+
+
+
+    /**
+     * 商品详情
+     *
+     * @return  array | null
+     */
+    public function dishesDetails()
+    {
+        if(!$this->dishesData) return null;
+        $returnData = null;
+        foreach ($this->dishesData as $key => $val)
+        {
+            $sortData = ProductActions::instance()->sortData($key,1);
+            $lastData = [];
+            if($val)
+            {
+                foreach ($val as $k => $v)
+                {
+                    $dishesData = (new Query())
+                        ->select("*")
+                        ->from("pay_store_dishes")
+                        ->where(['id' => $v['id']])
+                        ->one();
+                    if($dishesData)
+                    {
+                        $lastData[] = [
+                            'id' => $dishesData['id'],
+                            'proName' => $dishesData['dishes_name'],
+                            'img_url' => $dishesData['img_url'],
+                            'price' => $dishesData['price'],
+                            'now_price' => $dishesData['dis_price'],
+                            'sales_num' => $dishesData['sales_num'],
+                            'like_num' => 0,
+                            'is_hot' => $v['is_hot']
+                        ];
+                    }
+                }
+            }
+            $returnData[] = [
+                'sort_id' => $key,
+                'sort_name' => $sortData ? $sortData['sort_name'] : "",
+                'proData' => $lastData
+            ];
+        }
+        return $returnData;
     }
 
 

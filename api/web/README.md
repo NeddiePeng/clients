@@ -387,6 +387,76 @@ accessToken:授权码
 
 ```
 
+
+####商圈以及分类
+
+*Url:http://clients.qmwjj.cc/v1/business-sort/*
+
+*Method:GET*
+
+*GetParam:*
+```text
+adCode:城市编码
+
+top_sort：分类
+```
+
+*请求示例：http://clients.qmwjj.cc/v1/business-sort/610112001000/1  【参数顺序说明：adCode / top-sort】*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": {
+        "addrData": [
+            {
+                "id": "2810",
+                "areaName": "新城区",
+                "center": "108.960716,34.266447",
+                "lng": "108.960716",
+                "lat": "34.266447",
+                "businessData": [
+                    {
+                        "areaName": "西一路",
+                        "lng": "108.9549956388207",
+                        "lat": "34.261926793611785",
+                        "center": "108.9549956388207,34.261926793611785",
+                        "count": 2,
+                        "id": 0
+                    },
+                    {
+                        "areaName": "解放路",
+                        "lng": "108.96314609007828",
+                        "lat": "34.26720004308092",
+                        "center": "108.96314609007828,34.26720004308092",
+                        "count": 2,
+                        "id": 0
+                    },
+                    {
+                        "areaName": "尚勤路",
+                        "lng": "108.96644391036418",
+                        "lat": "34.26705222689076",
+                        "center": "108.96644391036418,34.26705222689076",
+                        "count": 2,
+                        "id": 0
+                    }
+                ]
+            }
+        ],
+        "sortData": [
+            {
+                "id": "255",
+                "sort_name": "食品保健",
+                "count": "0"
+            }
+        ]
+    }
+}
+```
+
+
+
 ####首页点击进入内页
 
 *Url:http://clients.qmwjj.cc/v1/stores*
@@ -400,7 +470,7 @@ top_sort:分类id
 sort_two:二级分类id
 
 lng:经度
-
+ 
 lat：纬度
 
 addr：地区   数据格式【{'addr_top':'hot','addr_two':12}】
@@ -529,6 +599,90 @@ s_id:门店id
 ```
 
 
+
+####门店相册
+
+*Url:http://clients.qmwjj.cc/v1/store-img/*
+
+*Method:GET*
+
+*GetParam:*
+```text
+img_type:图片类型【all:全部  pro：商品  scen：环境  license：资质】
+
+s_id:门店id
+```
+
+*请求示例：http://clients.qmwjj.cc/v1/store-img/all/31  【参数顺序  img_type / s_id】*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "获取成功",
+    "data": {
+        "imgList": [
+            "http://store.qmwjj.cc/storeImg/Atlas/20180904170144_977.jpg",
+            "http://store.qmwjj.cc/storeImg/Atlas/20181024105655_263.jpg",
+            "http://store.qmwjj.cc/storeImg/Atlas/20181024105655_571.jpg",
+            "http://store.qmwjj.cc/storeImg/Atlas/20181024142448_171.jpg",
+            "http://store.qmwjj.cc/storeImg/Atlas/20181128095621_820.jpg",
+            "http://store.qmwjj.cc/storeImg/License/20180930100303_887.jpg",
+            "http://store.qmwjj.cc/storeImg/License/20180930100304_461.jpg"
+        ]
+    }
+}
+```
+
+
+####门店商品数据
+
+*Url:http://clients.qmwjj.cc/v1/pro-list/*
+
+*Method:GET*
+
+*GetParam:*
+```text
+pro_type：商品类型【1：代金券2：团购4：购物车】
+
+s_id:门店id
+```
+
+*请求示例：http://clients.qmwjj.cc/v1/pro-list/2/31   【参数顺序：pro_type / s_id】*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "获取成功",
+    "data": [
+        {
+            "id": "7",
+            "x_id": "31",
+            "project_id": "7",
+            "type": "2",
+            "group_name": "肥牛火锅",
+            "img_url": "http://store.qmwjj.cc/storeImg/Group_img/20181008102321_504.jpg",
+            "one_sort": "5",
+            "two_sort": "7",
+            "price": "12.00",
+            "group_price": "5.00",
+            "use_min": "2",
+            "use_max": "2",
+            "group_type": "周一,周二",
+            "see_num": "0",
+            "pay_num": "0",
+            "description": "",
+            "create_time": "1538965428",
+            "up_time": "1539359999",
+            "down_time": "1540655999",
+            "status": "1"
+        }
+    ]
+}
+```
+
+
 ####商品详情center数据
 
 *Url:http://clients.qmwjj.cc/v1/pro-details*
@@ -613,7 +767,7 @@ s_id:门店id
 nav_type:评论类型【all:全部,img:晒图,nice：好评,bed：差评】
 ```
 
-*请求示例：http://clients.qmwjj.cc/v1/comments/img/1/31   【地址说明：参数顺序依次为nav_type->page->s_id】*
+*请求示例：http://clients.qmwjj.cc/v1/comments/img/1/31   【地址说明：参数顺序依次为nav_type / page / s_id】*
 
 *Return:*
 ```json
