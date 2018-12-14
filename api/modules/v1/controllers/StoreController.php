@@ -45,6 +45,14 @@ class StoreController extends Base
 
 
 
+    public function actionDemo()
+    {
+        $time = date("Y-m-d",strtotime("last day of -1 months",strtotime('2018-12-31')));
+        echo $time;
+    }
+
+
+
     /**
      * 门店数据
      */
@@ -89,11 +97,12 @@ class StoreController extends Base
             $storeProData = StoreOther::instance()->detailsPro($store['id'],$store['top_sort']);
             $storeAlbum = Store::instance()->getStoreAlbum($store['id']);
             $storeMobile = StoreActions::instance()->storeMobile($store['id']);
+            $storeActivily = StoreActions::activilyData($store['id']);
             $storeInfo = [
                 'sort_list' => $store['store_name'],
                 'business_time' =>  '早'.date('H:i',$store['open_start']).'-晚'.date('H:i',$store['open_end']),
-                'otherBusiness' => "免费",
-                'actively' => []
+                'otherBusiness' => "免费停车",
+                'actively' => $storeActivily
             ];
             $infoData = [
                 's_id' => $store['id'],

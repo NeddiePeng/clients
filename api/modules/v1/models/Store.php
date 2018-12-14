@@ -223,21 +223,25 @@ class Store extends ActiveRecord
      * @param    int   $s_id   门店id
      * @return   string
      */
-    public function storeAdvert($s_id)
+    public function storeAdvert($s_id,$type = 0)
     {
         $data = (new Query())
                 ->select("*")
                 ->from("pay_store_activity")
-                ->where(['x_id' => $s_id,'status' => 1])
-                ->all();
+                ->where(['x_id' => $s_id,'status' => 1]);
+        if($type)
+        {
+            $data = $data->where(['type' => $type])->all();
+        }
+        else
+        {
+            $data = $data->all();
+        }
         if(!$data) return '';
         $name = '';
         foreach ($data as $k => $v)
         {
-            if($v['type'] === 1)
-            {
-                $name .= $v['activity_title'].',';
-            }
+            $name .= $v['activity_title'].',';
         }
         return trim($name,',');
     }

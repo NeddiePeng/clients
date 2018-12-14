@@ -95,6 +95,7 @@ return [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET v1/demo' => 'v1/store/demo',
                 'GET v1/store-img/<img_type:\w+>/<s_id:\d+>' => 'v1/store/store-img',
                 'GET v1/pro-list/<pro_type:\w+>/<s_id:\d+>' => 'v1/product/pro-list',
                 'GET v1/business-sort/<adCode\d+>/<top_sort:\d+>' => 'v1/common/sort-district',

@@ -55,6 +55,28 @@ class StoreActions extends ActiveRecord
 
 
 
+    /**
+     * 门店活动
+     *
+     * @param   int    $s_id   门店id
+     * @return  array | null
+     */
+    public static function activilyData($s_id)
+    {
+        return [
+            [
+                'type' => 'full',
+                'text' => Store::instance()->storeAdvert($s_id)
+            ],
+            [
+                'type' => 'full',
+                'text' => Store::instance()->storeAdvert($s_id,3)
+            ]
+        ];
+    }
+
+
+
 
     /**
      * 门店相册数据

@@ -55,7 +55,11 @@ class ProductActions extends ActiveRecord
                 $lastData = $this->groupLast($data);
                 break;
             case 4:
-                $lastData = StoreOther::instance()->shopping($this->s_id);
+                $proData = StoreOther::instance()->shopping($this->s_id);
+                $lastData = [
+                    'activity' => StoreActions::activilyData($this->s_id),
+                    'proData' => $proData
+                ];
                 break;
             default:
                 $lastData = null;
@@ -96,11 +100,11 @@ class ProductActions extends ActiveRecord
     public function vouLast($data)
     {
         if(!$data) return null;
-        $last = null;
+        $last = [];
         foreach ($data as $k => $v)
         {
             $last[] = [
-                'id' => $v,
+                'id' => $v['project_id'],
                 'name' => $v['vouchers_name']
             ];
         }
@@ -199,6 +203,9 @@ class ProductActions extends ActiveRecord
             'bespeak' => $rules['is_bespeak'] == 1 ? '需提前预约' : '无需预约',
             'refund' => $rules['is_refund'] == 1 ? '随时退' : '过期退',
             'id' => $this->id,
+            'price' => 100,
+            'sales_num' => 10,
+            'old_price' => 200,
             'imgUrl' => ['imgList' => $imgData,'count' => count($imgData)],
             'groupContent' => array_values($this->content)
         ];
@@ -227,7 +234,10 @@ class ProductActions extends ActiveRecord
             'overlying' => $rules['is_overlying'] == 2 ? "不可叠加使用" : $rules['overlying_other'] ? $rules['overlying_other'] : "叠加使用限制",
             'bespeak' => $rules['is_bespeak'] == 1 ? '需提前预约' : '无需预约',
             'refund' => $rules['is_refund'] == 1 ? '随时退' : '过期退',
-            'id' => $this->id
+            'id' => $this->id,
+            'price' => $data['buy_price'],
+            'sales_num' => $data['sale_num'],
+            'old_price' => $data['face_val'],
         ];
         return [
             'topData' => $topData,

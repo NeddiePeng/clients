@@ -321,8 +321,8 @@ class StoreOther extends ActiveRecord
                 }
             }
             return [
-                ['type' => 'all','name' => $last_all],
-                ['type' => 'hour','name' => $hour_data]
+                ['type' => 'all','name' => $last_all,'old' => 100,'now' => 90],
+                ['type' => 'hour','name' => $hour_data,'old' => 100,'now' => 90]
             ];
 
         }
@@ -361,8 +361,8 @@ class StoreOther extends ActiveRecord
             if($last_check) $last_return_data[] = ['type' => 3,'name' => $last_check];
             return $last_return_data;*/
             return [
-                ['type' => 1,'name' => trim($last_vou,',')],
-                ['type' => 2,'name' => trim($last_group,',')],
+                ['type' => 1,'name' => trim($last_vou,','),'old' => 100,'now' => 90],
+                ['type' => 2,'name' => trim($last_group,','),'old' => 100,'now' => 90],
                 ['type' => 4,'name' => trim($shopAdvert,',')],
                 ['type' => 3,'name' => $last_check]
             ];
@@ -683,6 +683,14 @@ class StoreOther extends ActiveRecord
                         ->one();
                     if($dishesData)
                     {
+                        $specData = $this->dishesSpec($dishesData['id'],0);
+                        if($specData){
+                            foreach ($specData as $ke => $vl)
+                            {
+                                $child = $this->dishesSpec($dishesData['id'],$vl['id']);
+                                $specData[$ke]['child'] = $child ? $child : null;
+                            }
+                        }
                         $lastData[] = [
                             'id' => $dishesData['id'],
                             'proName' => $dishesData['dishes_name'],
@@ -691,7 +699,8 @@ class StoreOther extends ActiveRecord
                             'now_price' => $dishesData['dis_price'],
                             'sales_num' => $dishesData['sales_num'],
                             'like_num' => 0,
-                            'is_hot' => $v['is_hot']
+                            'is_hot' => $v['is_hot'],
+                            'specData' => $specData
                         ];
                     }
                 }
@@ -703,6 +712,25 @@ class StoreOther extends ActiveRecord
             ];
         }
         return $returnData;
+    }
+
+
+
+    /**
+     * 单品规格
+     *
+     * @param   int    $d_id        单品id
+     * @param   int    $parent_id   父级id
+     * @return  array | null
+     */
+    public function dishesSpec($d_id,$parent_id)
+    {
+        $data = (new Query())
+                ->select("id,spec_title,price,parent_id")
+                ->from("pay_store_dishes_spec")
+                ->where(['d_id' => $d_id]);
+        if($parent_id) return $data->andWhere(['parent_id' => $parent_id])->all();
+        return $data->andWhere(['parent_id' => 0])->all();
     }
 
 
