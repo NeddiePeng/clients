@@ -47,8 +47,10 @@ class StoreController extends Base
 
     public function actionDemo()
     {
-        $time = date("Y-m-d",strtotime("last day of -1 months",strtotime('2018-12-31')));
-        echo $time;
+        $arr_1 = ['a' => 1,'b' => 2,'c' => 3,'d' => 4];
+        $arr_2 = ['a' => 1,'c' => 4];
+        var_dump(array_diff($arr_1,$arr_2));
+        var_dump(array_diff_assoc($arr_1,$arr_2));
     }
 
 

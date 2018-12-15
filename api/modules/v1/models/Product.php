@@ -7,11 +7,31 @@
  */
 namespace api\modules\v1\models;
 
+use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Query;
 
 class Product extends ActiveRecord
 {
+
+
+
+    /**
+     * 酒店房间数据
+     *
+     * @param   int   $r_id   房间id
+     * @return  array | null
+     */
+    public static function roomData($r_id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_hotel_room_spec")
+                ->where(['id' => $r_id])
+                ->one(Yii::$app->db2);
+        return $data;
+    }
+
 
 
     /**

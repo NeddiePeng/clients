@@ -132,9 +132,23 @@ class ProductActions extends ActiveRecord
             case 4:
                 $data = "";
                 break;
+            case 'hotel':
+                $data = $this->hotelDetails();
+                break;
             default:
                 $data = null;
         }
+        return $data;
+    }
+
+
+
+    /**
+     * 酒店参皮数据详情
+     */
+    public function hotelDetails()
+    {
+        $data = Product::roomData($this->id);
         return $data;
     }
 
