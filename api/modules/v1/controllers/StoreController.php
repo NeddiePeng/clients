@@ -45,16 +45,6 @@ class StoreController extends Base
 
 
 
-    public function actionDemo()
-    {
-        $arr_1 = ['a' => 1,'b' => 2,'c' => 3,'d' => 4];
-        $arr_2 = ['a' => 1,'c' => 4];
-        var_dump(array_diff($arr_1,$arr_2));
-        var_dump(array_diff_assoc($arr_1,$arr_2));
-    }
-
-
-
     /**
      * 门店数据
      */

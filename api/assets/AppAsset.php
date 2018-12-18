@@ -1,11 +1,12 @@
 <?php
 
-namespace backend\assets;
+namespace api\assets;
 
 use yii\web\AssetBundle;
+use yii\web\View;
 
 /**
- * Main backend application asset bundle.
+ * Main api application asset bundle.
  */
 class AppAsset extends AssetBundle
 {
@@ -19,5 +20,12 @@ class AppAsset extends AssetBundle
     public $depends = [
         'yii\web\YiiAsset',
         'yii\bootstrap\BootstrapAsset',
+    ];
+
+    /**
+     * @inheritdoc
+     */
+    public $jsOptions = [
+        'position' => View::POS_HEAD
     ];
 }

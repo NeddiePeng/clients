@@ -7,7 +7,9 @@
  */
 namespace api\modules\v1\models;
 
+use api\behaviors\TokenBehavior;
 use api\models\User;
+use api\modules\Base;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Query;
@@ -20,6 +22,35 @@ class Order extends ActiveRecord
     public $page = 1;
     public $limit = 5;
     public $nav_type = 'all';
+    public $s_id;
+    public $id;
+    public $actual;
+    public $total;
+    public $offer_price;
+    public $number;
+    public $type;
+    public $pay_method;
+    static $partitionIndex_;
+
+
+
+    //重置分区id
+    private static function resetPartitionIndex($uid = null)
+    {
+        $partitionCount  = Yii::$app->params['partitionCount'];
+        self::$partitionIndex_ = $uid % $partitionCount;
+    }
+
+
+    public function behaviors()
+    {
+        return [
+            'TokenBehavior' => [
+                'class' => TokenBehavior::className(),
+                'tokenParam' => 'accessToken',
+            ],
+        ];
+    }
 
 
     //数据表
@@ -34,9 +65,21 @@ class Order extends ActiveRecord
     {
         return [
             [['accessToken'],'required','on' => 'new-order'],
-            [['order_id'],'required','on' => 'order-details']
+            [['order_id'],'required','on' => 'order-details'],
+            [
+                ['s_id','id','actual','total','offer_price','number'],
+                'required',
+                'on' => 'create-order'
+            ],
+            [
+                ['order_id','actual','pay_method'],'required','on' => 'order-pay'
+            ],
+            [
+                ['order_id','returnPriorderQueryce'],'required','on' => 'order-return'
+            ]
         ];
     }
+
 
 
     //字段信息
@@ -44,8 +87,130 @@ class Order extends ActiveRecord
     {
         return [
             'accessToken' => Yii::t("app",'accessToken'),
-            'order_id' => Yii::t("app",'order_id')
+            's_id' => Yii::t('app','s_id'),
+            'type' => Yii::t('app','type'),
+            'id' => Yii::t('app','id'),
+            'actual' => Yii::t('app','actual'),
+            'total' => Yii::t('app','total'),
+            'offer_price' => Yii::t('app','offer_price'),
+            'number' => Yii::t('app','number'),
+            'order_id' => Yii::t('app','order_id'),
+            'pay_method' => Yii::t('app','pay_method'),
+            'returnPrice' => Yii::t('app','returnPrice')
         ];
+    }
+
+
+    /**
+     * 订单退款
+     *
+     * @return   array | null
+     */
+    public function orderReturn()
+    {
+        $this->getBehavior('TokenBehavior')->checkAccessToken();
+        $order = static::findOne(['order_id' => $this->order_id]);
+        if(!$order) return null;
+        switch ($order['pay_method'])
+        {
+            case 1:
+                $data = Yii::$app->ali->refund();
+                break;
+            case 2:
+                $data = Yii::$app->wx->refund();
+                break;
+            default:
+                $data = null;
+        }
+        return $data;
+    }
+
+
+
+    /**
+     * 订单支付
+     *
+     * @return   array | null
+     */
+    public function orderPay()
+    {
+        $this->getBehavior('TokenBehavior')->checkAccessToken();
+        $payParam = [
+            'out_trade_no' => $this->order_id,
+            'total_amount' => $this->actual,
+            'body' => "减付宝订单-{$this->order_id}-支付",
+            'subject' => "减付宝订单-{$this->order_id}-支付",
+            'time_expire' => date("Y-m-d H:i:s",time() + 3600),
+            'type' => 'APP'
+        ];
+        switch ($this->pay_method)
+        {
+            case 'ali':
+                $data = Yii::$app->ali->alipay($payParam);
+                break;
+            case 'wx':
+                $data = Yii::$app->wx->unifiedOrder($payParam);
+                break;
+            default:
+                $data = null;
+        }
+        return $data;
+    }
+
+
+
+    /**
+     * 提交订单
+     *
+     * @return int | boolean
+     */
+    public function createOrder()
+    {
+        $this->getBehavior('TokenBehavior')->checkAccessToken();
+        $user = User::findIdentityByAccessToken($this->accessToken);
+        if(!$user) return false;
+        $uid = $user['id'];
+        $order_id = Base::createOrderId();
+        $insert_data = [
+            'order_id' => $order_id,
+            'uid' => $uid,
+            'x_id' => $this->s_id,
+            'order_total_price' => $this->total,
+            'actual_price' => $this->actual,
+            'dis_price' => $this->offer_price,
+            'service_price' => $this->actual * 0.06,
+            'type' => $this->type,
+            'create_order_time' => time()
+        ];
+        $res = Yii::$app->db->createCommand()
+               ->insert(static::tableName(),$insert_data)
+               ->execute();
+        if(!$res) return false;
+        return $this->insertOrderObject($order_id);
+    }
+
+
+
+
+    /**
+     * 生成订单产品数据
+     *
+     * @param   string   $order_id   订单
+     * @return  boolean | int
+     */
+    public function insertOrderObject($order_id)
+    {
+        $insert_data = [
+            'order_id' => $order_id,
+            'project_id' => $this->p_id,
+            'type' => $this->type,
+            'price' => $this->actual,
+            'number' => $this->number
+        ];
+        $res = Yii::$app->db->createCommand()
+               ->insert("pay_store_order_project",$insert_data)
+               ->execute();
+        return $res ? Yii::$app->db->getLastInsertID() : false;
     }
 
 

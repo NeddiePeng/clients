@@ -241,6 +241,7 @@ class LoginForm extends ActiveRecord
         if ($this->_user === false) {
             $this->onApiToken();
             $this->_user = User::findByUsername($this->mobile);
+            User::$users = $this->_user;
         }
         return $this->_user;
     }

@@ -7,6 +7,7 @@
  */
 namespace api\components\WX;
 
+use api\modules\v1\models\CallBack;
 use Yii;
 use yii\base\Component;
 
@@ -116,6 +117,22 @@ class weChat extends Component
     }
 
 
+    /**
+     * 订单查询
+     *
+     * @param   array   $params   订单数据
+     * @return  boolean | null
+     */
+    public function orderQuery($params)
+    {
+        $api = strtolower(__FUNCTION__);
+        $api = $this->config[$api];
+        $xmlData = orderQuery($params);
+        $resData = http($xmlData,$api);
+        return $resData;
+    }
+
+
 
     /**
      * 异步回调
@@ -134,9 +151,9 @@ class weChat extends Component
             if($data['result_code'] === 'SUCCESS')
             {
                 success();
+                CallBack::instance()->updateOrder($data);
             }
         }
-        return $data;
     }
 
 

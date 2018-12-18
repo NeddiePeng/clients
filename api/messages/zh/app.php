@@ -34,6 +34,14 @@ return [
     'sort_id' => '分类ID',
     's_id' => "门店id",
     'type' => "操作类型",
-    'pro_type' => '产品类型'
+    'pro_type' => '产品类型',
+
+
+    'number' => "数量",
+    'offer_price' => "优惠金额",
+    'total' => "总金额",
+    'actual' => "实际支付金额",
+    'pay_method' => "支付方式",
+    'returnPrice' => "退款金额"
 
 ];

@@ -95,6 +95,9 @@ return [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'POST v1/order-pay' => 'v1/order-other/order-pay',
+                'POST v1/order-create' => 'v1/order-other/create',
+                'GET v1/index-demo' => 'v1/demo/index',
                 'GET v1/demo' => 'v1/store/demo',
                 'GET v1/store-img/<img_type:\w+>/<s_id:\d+>' => 'v1/store/store-img',
                 'GET v1/pro-list/<pro_type:\w+>/<s_id:\d+>' => 'v1/product/pro-list',

@@ -26,10 +26,11 @@ function assemble($params)
         'nonce_str' => nonce_str(32),
         'body' => $params['body'],
         'out_trade_no' => $params['out_trade_no'],
-        'total_fee' => $params['total_fee'] * 100,
+        'total_fee' => $params['total_amount'] * 100,
         'spbill_create_ip' => spbill_create_ip(),
         'notify_url' => $notify_url,
-        'trade_type' => $params['trade_type']
+        'trade_type' => $params['trade_type'],
+        'time_expire' => date("YmdHis",time()+3600)
     ];
     $sign = createSign($last_param);
     $last_param['sign'] = $sign;
@@ -125,6 +126,29 @@ function success()
     die();
 }
 
+
+/**
+ * 订单查询
+ *
+ * @param   array   $params   订单数据
+ * @param   string  $api      请求地址
+ * @return  string
+ */
+function orderQuery($params)
+{
+    $app_id = Yii::$app->wx->app_id;
+    $mch_id = Yii::$app->wx->mch_id;
+    $out_trade_no = $params['order_id'];
+    $nonce_str = nonce_str(32);
+    $param['app_id'] = $app_id;
+    $param['mch_id'] = $mch_id;
+    $param['out_trade_no'] = $out_trade_no;
+    $param['nonce_str'] = $nonce_str;
+    $sign = createSign($param);
+    $param['sign'] = $sign;
+    $xml = arrToXml($param);
+    return $xml;
+}
 
 
 /**

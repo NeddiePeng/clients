@@ -37,6 +37,9 @@ return [
     //退款
     'refund' => 'https://api.mch.weixin.qq.com/secapi/pay/refund',
 
+    //订单查询
+    'orderquery' => 'https://api.mch.weixin.qq.com/pay/orderquery',
+
     //回调地址
     'notify_url' => '',
 

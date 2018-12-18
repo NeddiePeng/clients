@@ -88,7 +88,7 @@ class Ali extends Component
         $aop->signType = 'RSA2';
         $aop->postCharset='UTF-8';
         $aop->format='json';
-        if($params['type'] === 'app')
+        if($params['type'] === 'APP')
         {
             $request = new AlipayTradeAppPayRequest();
         }

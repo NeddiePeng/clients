@@ -26,7 +26,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     public $accessToken = '';
 
-    private static $users = null;
+    public static $users = "success";
 
     public $status = 10;
 
@@ -110,11 +110,15 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        $usersData = static::findOne(['mobile' => $username, 'status' => self::STATUS_ACTIVE]);
+        $usersData = (new Query())
+                     ->select("*")
+                     ->from("pay_user")
+                     ->where(['mobile' => $username, 'status' => self::STATUS_ACTIVE])
+                     ->one();
         if($usersData)
         {
             Yii::$app->db->createCommand()
-            ->update(self::tableName(),['accessToken' => LoginForm::$accessToken],['mobile' => $username])
+            ->update("pay_user",['accessToken' => LoginForm::$accessToken],['id' => $usersData['id']])
             ->execute();
         }
         return static::$users = $usersData;
@@ -192,7 +196,7 @@ class User extends ActiveRecord implements IdentityInterface
         $this->accessToken = Yii::$app->security->generateRandomString().'_'.time();
         //存储到缓存里面,第二个参数为该用户的对象
         LoginForm::$accessToken = $this->accessToken;
-        Yii::$app->cache->set($this->accessToken,self::$users,7200);
+        Yii::$app->cache->set($this->accessToken,self::$users);
     }
 
 
