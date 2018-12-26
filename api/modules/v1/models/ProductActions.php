@@ -80,9 +80,12 @@ class ProductActions extends ActiveRecord
         $last = [];
         foreach ($data as $k => $v)
         {
+            $use_serson = $v['use_min'] == $v['use_max'] ? $v['use_max'].'人餐' : $v['use_max'].'人餐';
+            list($price,$price_su) = explode('.',$v['group_price']);
+            if(trim($price_su,0)) $price = $price.'.'.$price_su;
             $last[] = [
                 'id' => $v['id'],
-                'name' => $v['group_name']
+                'name' => $price.'元'.$use_serson
             ];
         }
         return $last;
@@ -174,9 +177,9 @@ class ProductActions extends ActiveRecord
                 if($val['dishes_name'] )
                 {
                     $imgData[] = [
-                    'img' => $val['img_url'],
-                    'name' => $val['dishes_name']
-                ];
+                        'img' => $val['img_url'],
+                        'name' => $val['dishes_name']
+                    ];
                 }
                 if(in_array($val['sort_id'],$this->sortData)){
                     if($val['dishes_name'])
@@ -186,6 +189,7 @@ class ProductActions extends ActiveRecord
                             'num' => $val['number'],
                             'price' => $val['dis_price']
                         ];
+                        $this->content[$val['sort_id']]['contentCount'] += 1;
                     }
                 }else{
                     if($val['dishes_name'])
@@ -199,10 +203,10 @@ class ProductActions extends ActiveRecord
                             'num' => $val['number'],
                             'price' => $val['dis_price']
                         ];
-                        $this->content[$val['sort_id']]['content'][] =$dishesData;
+                        $this->content[$val['sort_id']]['content'][] = $dishesData;
+                        $this->content[$val['sort_id']]['contentCount'] = 1;
                     }
                 }
-
             }
         }
         if($data['img_url'])
@@ -217,9 +221,9 @@ class ProductActions extends ActiveRecord
             'bespeak' => $rules['is_bespeak'] == 1 ? '需提前预约' : '无需预约',
             'refund' => $rules['is_refund'] == 1 ? '随时退' : '过期退',
             'id' => $this->id,
-            'price' => 100,
+            'price' => $data['group_price'],
             'sales_num' => 10,
-            'old_price' => 200,
+            'old_price' => $data['price'],
             'imgUrl' => ['imgList' => $imgData,'count' => count($imgData)],
             'groupContent' => array_values($this->content)
         ];

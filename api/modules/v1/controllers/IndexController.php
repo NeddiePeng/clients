@@ -7,6 +7,8 @@
  */
 namespace api\modules\v1\controllers;
 
+use api\modules\v1\actions\CreateAction;
+use api\modules\v1\models\Common;
 use Yii;
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
@@ -32,10 +34,13 @@ class IndexController extends Base
 
     public function actions()
     {
-        $actions = parent::actions();
-        // 注销系统自带的实现方法
-        unset($actions['index']);
-        return $actions;
+        return [
+            'sort-list' => [
+                'class' => CreateAction::className(),
+                'modelClass' => Common::className(),
+                'modelActions' => 'sortComData'
+            ]
+        ];
     }
 
 

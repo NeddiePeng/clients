@@ -26,6 +26,7 @@ return [
     'accessToken' => '授权码',
     'order_id' => '订单号',
     'id' => '产品id',
+    'r_id' => '房间id',
 
 
     //附近

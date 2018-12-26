@@ -35,10 +35,11 @@ class UserController extends Base
 
     public function actions()
     {
-        $actions = parent::actions();
-        // 注销系统自带的实现方法
-        unset($actions['index']);
-        return $actions;
+        return [
+            'my-msg' => [
+                'class' => ""
+            ]
+        ];
     }
 
 

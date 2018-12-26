@@ -92,6 +92,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
 
+
    /**
     * 调用认证
     *

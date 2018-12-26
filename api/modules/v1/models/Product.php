@@ -168,7 +168,7 @@ class Product extends ActiveRecord
      * @param    int      $status  状态
      * @return   array | null
      */
-    public static function unified($data, $type, $number, $status, $time,$s_id)
+    public static function unified($data, $type, $number, $status, $time,$s_id,$price)
     {
         if(!$data) return null;
         $header_img = (new Store())->headerImg($s_id);
@@ -192,7 +192,7 @@ class Product extends ActiveRecord
         }
         $data = [
             'name' => $name,
-            'price' => $data['buy_price'],
+            'price' => $price,
             'num' => $number,
             'status' => $status,
             'buy_time' => $time,

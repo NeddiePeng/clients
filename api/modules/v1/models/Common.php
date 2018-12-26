@@ -18,6 +18,7 @@ class Common extends ActiveRecord
     public $s_id;
     public $adCode;
     public $top_sort;
+    public $sort_id;
 
     //数据表
     public static function tableName()
@@ -32,7 +33,8 @@ class Common extends ActiveRecord
         return [
             [['mask'],'required','on' => 'advert'],
             [['s_id','type'],'required','on' => 'like-share'],
-            [['adCode','top_sort'],'required','on' => 'business']
+            [['adCode','top_sort'],'required','on' => 'business'],
+            [['sort_id'],'required','on' => 'sort-list']
         ];
     }
 
@@ -41,10 +43,84 @@ class Common extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'mask' => Yii::t('app','mask'),
-            's_id' => Yii::t('app','s_id'),
-            'type' => Yii::t('app','type')
+            'mask' => Yii::t('app', 'mask'),
+            's_id' => Yii::t('app', 's_id'),
+            'type' => Yii::t('app', 'type'),
+            'sort_id' => Yii::t('app','sort_id')
         ];
+    }
+
+
+
+
+    /**
+     * 所有分类数据
+     *
+     * @return  array | null
+     */
+    public function sortComData()
+    {
+        $data = (new Query())
+            ->select("id,sort_name,parent_id")
+            ->from("pay_store_sort")
+            ->where(['status' => 1])
+            ->andWhere(['parent_id' => 0])
+            ->all();
+        if(!$data) return null;
+        return $this->childSort($data);
+    }
+
+
+
+
+    /**
+     * 二级分类
+     *
+     * @param    array   $sortData   分类数据
+     * @return   array | null
+     */
+    public function childSort($sortData)
+    {
+        foreach ($sortData as $key => $val)
+        {
+            $data = (new Query())
+                ->select("id,sort_name,parent_id")
+                ->from("pay_store_sort")
+                ->where(['parent_id' => $val['id']])
+                ->all();
+            if($data){
+                foreach ($data as $k => $v)
+                {
+                    $three = (new Query())
+                        ->select("id,sort_name,parent_id")
+                        ->from("pay_store_sort")
+                        ->where(['parent_id' => $v['id']])
+                        ->all();
+                    $data[$k]['childData'] = $three ? $three : null;
+                }
+            }
+            $sortData[$key]['childData'] = $data ? $data : null;
+        }
+        return $sortData;
+    }
+
+
+
+
+    /**
+     * 三级分类数据
+     *
+     * @return   array | null
+     */
+    public function sortList()
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_sort")
+                ->where(['parent_id' => $this->sort_id])
+                ->andWhere(['status' => 1])
+                ->all();
+        return $data;
     }
 
 

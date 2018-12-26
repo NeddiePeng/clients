@@ -54,23 +54,20 @@ class CreateAction extends Action
             Yii::$app->getResponse()->format = $this->ajaxResponseFormat;
             $params = Yii::$app->request->post();
             $accessToken = Yii::$app->request->headers->get('accessToken');
-            if($accessToken)
-            {
+            if($accessToken) {
                 $params['accessToken'] = $accessToken;
             }
-            if($model->load($params,"") && $model->validate())
-            {
+            if(empty($params)) $params['time'] = time();
+            if($model->load($params,"") && $model->validate()) {
                 /* 执行对应的方法 */
                 $modelActions = $this->modelActions;
                 $handle = $model->$modelActions();
                 if(!$handle) return ['code' => 0,'msg' => 'fail','data' => new \stdClass()];
                 return ['code' => 200,'msg' => 'success','data' => $handle];
-            }
-            else
-            {
+            } else {
                 $errorReasons = $model->getErrors();
                 $err = '';
-                if(!$errorReasons) return "";
+                if(!$errorReasons) return ['code' => 400,'msg' => '未知错误信息','data' => new \stdClass()];;
                 foreach ($errorReasons as $errorReason) {
                     $err .= $errorReason[0] . '<br>';
                 }

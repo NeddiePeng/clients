@@ -165,22 +165,20 @@ class Base extends ActiveController
     public static function createOrderId()
     {
         @date_default_timezone_set("PRC");
-        while(true){
-            //订购日期
-            $order_date = date('Y-m-d');
-            //订单号码主体（YYYYMMDDHHIISSNNNNNNNN）
-            $order_id_main = date('YmdHis') . rand(10000000,99999999);
-            //订单号码主体长度
-            $order_id_len = strlen($order_id_main);
-            $order_id_sum = 0;
+        //订购日期
+        $order_date = date('YmdHis');
+        //订单号码主体（YYYYMMDDHHIISSNNNNNNNN）
+        $order_id_main = $order_date . rand(10000000,99999999);
+        //订单号码主体长度
+        $order_id_len = strlen($order_id_main);
+        $order_id_sum = 0;
 
-            for($i=0; $i<$order_id_len; $i++){
-                $order_id_sum += (int)(substr($order_id_main,$i,1));
-            }
-
-            //唯一订单号码（YYYYMMDDHHIISSNNNNNNNNCC）
-            $order_id = $order_id_main . str_pad((100 - $order_id_sum % 100) % 100,2,'0',STR_PAD_LEFT);
+        for($i=0; $i<$order_id_len; $i++){
+            $order_id_sum += (int)(substr($order_id_main,$i,1));
         }
+
+        //唯一订单号码（YYYYMMDDHHIISSNNNNNNNNCC）
+        $order_id = $order_id_main . str_pad((100 - $order_id_sum % 100) % 100,2,'0',STR_PAD_LEFT);
         return $order_id;
     }
 
@@ -193,16 +191,45 @@ class Base extends ActiveController
      * @param     string   $key     数组字段
      * @return    array
      */
-    public function array2dSort($array, $key)
+    public function array2dSort($array, $key_v)
     {
+        $tmp = $last_arr = [];
         foreach ($array as $key => $val)
         {
-
+            $tmp[] = $val[$key_v];
         }
+        arsort($tmp);
+        foreach ($tmp as $key => $val)
+        {
+            $last_arr[] = $array[$key];
+        }
+        return $last_arr;
     }
 
 
 
+
+    /**
+     * 二维数组去重
+     *
+     * @param   array   $array  去重数组
+     * @return  array
+     */
+    public static function array2dUnqied($array, $key)
+    {
+        $oneArray = [];
+        foreach ($array as $k => $v)
+        {
+            $oneArray[] = $v[$key];
+        }
+        $oneArray = array_unique($oneArray);
+        $last_data = [];
+        foreach ($oneArray as $key => $val)
+        {
+            $last_data[] = $array[$key];
+        }
+        return $last_data;
+    }
 
 
 }

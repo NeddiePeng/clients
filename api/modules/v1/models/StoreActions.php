@@ -103,6 +103,14 @@ class StoreActions extends ActiveRecord
                         $dataList[] = $v['card_back_img'];
                     }
                 }
+                $proData = Product::dishesData($this->s_id);
+                if($proData)
+                {
+                    foreach ($proData as $k => $v)
+                    {
+                        $dataList[] = $v['img_url'];
+                    }
+                }
                 break;
             case 'pro':
                 $dataList = null;
@@ -177,7 +185,6 @@ class StoreActions extends ActiveRecord
         $addrWhere = Yii::$app->where->select('storeAddr',$params);
         $otherWhere = Yii::$app->where->select("storeOther",$params);
         $where = array_merge($where,$sortWhere,$addrWhere,$otherWhere);
-
         $per = ($this->page - 1) * 10;
         $store = (new Query())
                  ->select("*")

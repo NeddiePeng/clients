@@ -9,6 +9,8 @@ namespace api\modules\v1\controllers;
 
 use api\behaviors\TokenBehavior;
 use api\modules\Base;
+use api\modules\v1\actions\CreateAction;
+use api\modules\v1\models\Common;
 use api\modules\v1\models\Store;
 use api\modules\v1\models\StoreActions;
 use api\modules\v1\models\StoreOther;
@@ -38,9 +40,39 @@ class StoreController extends Base
     public function actions()
     {
         $actions = parent::actions();
-        // 注销系统自带的实现方法
+        // 注销自带的实现方法
         unset($actions['index']);
-        return $actions;
+        return [
+           'three-sort' => [
+               'class' => CreateAction::className(),
+               'modelClass' => Common::className(),
+               'scenario' => 'sort-list',
+               'modelActions' => 'sortList'
+           ],
+           'hotel-sort' => [
+               'class' => CreateAction::className(),
+               'modelClass' => Store::className(),
+               'scenario' => 'hotel-sort',
+               'modelActions' => 'hotelList'
+           ],
+           'search-hotel' => [
+               'class' => CreateAction::className(),
+               'modelClass' => Store::className(),
+               'modelActions' => 'searchHotel'
+           ],
+           'hotel-details' => [
+               'class' => CreateAction::className(),
+               'modelClass' => Store::className(),
+               'scenario' => 'hotel-details',
+               'modelActions' => 'hotelDetails'
+           ],
+           'room-details' => [
+               'class' => CreateAction::className(),
+               'modelClass' => Store::className(),
+               'scenario' => 'room-details',
+               'modelActions' => 'roomDetails'
+           ]
+        ];
     }
 
 
@@ -58,7 +90,7 @@ class StoreController extends Base
             $store = $model->getStoreData($params);
             if(!$store) return $this->returnData(0,'数据为空');
             $obj = new StoreOther();
-            $data = $obj->getPro($store);
+            $data = $obj->getPro($store,'');
             if(!$data) return $this->returnData(0,'数据为空');
             foreach ($data as $key => $val)
             {
@@ -96,6 +128,8 @@ class StoreController extends Base
                 'otherBusiness' => "免费停车",
                 'actively' => $storeActivily
             ];
+            $model->img_type = 'all';
+            $counts = $model->getImgList($store['id'],'all');
             $infoData = [
                 's_id' => $store['id'],
                 'store_name' => $store['store_name'],
@@ -108,7 +142,7 @@ class StoreController extends Base
                 'Notice' => $store['Notice'],
                 'headerImgData' => [
                     'imgUrl' => $storeAlbum ? $storeAlbum[0]['img_url'] : "",
-                    'count' => count($storeAlbum ? $storeAlbum : [])
+                    'count' => count($counts ? $counts : [])
                 ],
                 'distance' => $this->sum($params['lat'],$params['lng'],$store['lat'],$store['lng']),
                 'lat' => $store['lat'],

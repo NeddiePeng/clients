@@ -24,6 +24,14 @@ class Store extends ActiveRecord
     public $sort_one;
     public $sort_two;
     public $top_sort;
+    public $sort_id;
+    public $keyWords;
+    public $starPrice;
+    public $s_id;
+    public $r_id;
+    public $hotelRoomUse = [
+        '直接消费，不需要减付宝券，请携带入住人身份证，凭姓名和预定手机号直接办理入住'
+    ];
 
 
     //数据表
@@ -39,7 +47,10 @@ class Store extends ActiveRecord
         return [
             [['clients_id','lat','lng'],'required','on' => 'index-like'],
             [['lat','lng','page','top_sort','sort_two'],'required','on' => 'nearby'],
-            [['lat','lng'],'required','on' => 'store']
+            [['lat','lng'],'required','on' => 'store'],
+            [['sort_id','page','lat','lng'],'required','on' => 'hotel-sort'],
+            [['s_id'],'required','on' => 'hotel-details'],
+            [['r_id'],'required','on' => 'room-details']
         ];
     }
 
@@ -53,9 +64,374 @@ class Store extends ActiveRecord
             'lng' => Yii::t('app','lng'),
             'page' => Yii::t('app','page'),
             'top_sort' => Yii::t('app','top_sort'),
-            'sort_two' => Yii::t('app','sort_two')
+            'sort_two' => Yii::t('app','sort_two'),
+            'sort_id' => Yii::t('app','sort_id'),
+            's_id' => Yii::t('app','s_id'),
+            'r_id' => Yii::t('app','r_id')
         ];
     }
+
+
+    /**
+     * 酒店房间详情
+     *
+     * @return   array | null
+     */
+    public function roomDetails()
+    {
+        $data = (new Query())
+                ->select("spec.id as spec_id,spec.week_discount_price as price,spec.*,type.*")
+                ->from("pay_hotel_room_spec as spec")
+                ->leftJoin("pay_hotel_house_type as type",'type.id=spec.h_id')
+                ->where(['spec.id' => $this->r_id])
+                ->one(Yii::$app->db2);
+        if(!$data) return null;
+        $imgData = $this->headerImg($data['spec_id']);
+        $desc = $data['refund_type'] == 1 ? "订单确认后不可取消/变更，如未入住，酒店将扣除全额房费" : "可取消";
+        $hotelRoomUse = $this->hotelRoomUse;
+        $last_data = [
+            'room_id' => $data['spec_id'],
+            'headerImg' => $imgData ? $imgData['img_url'] : "",
+            'room_name' => $data['house_title']."({$data['spec_title']})",
+            'inter' => "WIFI和宽带",
+            'bathroom' => '独立卫生间',
+            'is_window' => $data['is_window'] == 1 ? "含窗" : $data['is_window'] == 2 ? "部分含窗" : "不含窗",
+            'acreage' => $data['acreage'],
+            'floor_num' => $data['floor_num'],
+            'contain_breakfast' => $data['is_contain_breakfast'] == 1 ? "含早" : $data['is_contain_breakfast'] == 2 ? "含双早" : "不含早",
+            'refund' => [
+                'is_refund' => $data['refund_type'] == 1 ? "不可取消" : "可取消",
+                'desc' => $desc
+            ],
+            'useRule' => $hotelRoomUse,
+            'price' => $data['price']
+        ];
+        return $last_data;
+    }
+
+
+
+
+
+
+    /**
+     * 酒店详情
+     *
+     * @return  array | null
+     */
+    public function hotelDetails()
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_info")
+                ->where(['id' => $this->s_id])
+                ->one();
+        if(!$data) return null;
+        $sortData = $this->storeSort($data['top_sort'],$data['one_sort']);
+        $storeProData = StoreOther::instance()->detailsPro($data['id'],$data['top_sort']);
+        $storeAlbum = $this->getStoreAlbum($data['id']);
+        $storeMobile = StoreActions::instance()->storeMobile($data['id']);
+        $hotelRoomRules = $this->roomRules();
+        $infoData = [
+            's_id' => $data['id'],
+            'store_name' => $data['store_name'],
+            'score' => $data['score'],
+            'sort_name' => $sortData ? $sortData['sort_name'] : "",
+            'per_capita' => 100,
+            'mobile' => $storeMobile ? $storeMobile[0]['mobile'] : '',
+            'address' => $data['address'],
+            'Notice' => $data['Notice'],
+            'headerImgData' => [
+                'imgUrl' => $storeAlbum ? $storeAlbum[0]['img_url'] : "",
+                'count' => count($storeAlbum ? $storeAlbum : [])
+            ],
+            'distance' => $this->sum($this->lat,$this->lng,$data['lat'],$data['lng']),
+            'lat' => $data['lat'],
+            'lng' => $data['lng']
+        ];
+        $commentScore = [
+            'totalScore' => $data['score'],
+            'otherScore' => [
+                'flavor' => 0,
+                'service' => 0,
+                'scenario' => 0
+            ]
+        ];
+        $storeInfo = null;
+        $last_data['infoData'] = $infoData;
+        $last_data['otherInfo'] = $hotelRoomRules;
+        $last_data['commentScore'] = $commentScore;
+        $last_data['proData'] = $storeProData;
+        return $last_data;
+    }
+
+
+
+    /**
+     * 订房须知
+     *
+     * @return  array | null
+     */
+    public function roomRules()
+    {
+        $facility = $this->hotelFacility();
+        $hotelInfo = (new Query())
+                     ->select("*")
+                     ->from("pay_hotel_other_info")
+                     ->where(['x_id' => $this->s_id])
+                     ->one(Yii::$app->db2);
+        $lastInfo = null;
+        if($hotelInfo) {
+            $lastInfo = [
+                'Decoration' => date("Y", $hotelInfo['last_fixture_time']),
+                'openTime' => date("Y",$hotelInfo['opening_time']),
+                'floor_number' => $hotelInfo['floor_number'],
+                'roomTotal' => $hotelInfo['rom_number']
+            ];
+        }
+        $traffic = $this->hotelTraffic();
+        return [
+            'facility' => $facility,
+            'otherInfo' => $lastInfo,
+            'descriptions' => $hotelInfo['hotel_descriptions'],
+            'traffic' => $traffic
+        ];
+    }
+
+
+
+    /**
+     * 交通信息
+     *
+     * @return  array | null
+     */
+    public function hotelTraffic()
+    {
+        return [
+            [
+                'name' => '市图书馆',
+                'distance' => '1.2Km'
+            ],
+            [
+                'name' => '地铁四号线常青路站',
+                'distance' => '0.1km'
+            ]
+        ];
+    }
+
+
+
+    /**
+     * 酒店设施
+     *
+     * @return  array | null
+     */
+    public function hotelFacility()
+    {
+        $data = (new Query())
+                ->select("id,facilities_title,parent_id")
+                ->from("pay_hotel_service_facilities")
+                ->where(['status' => 1])
+                ->all(Yii::$app->db2);
+        if(!$data) return null;
+        $idList = [];
+        foreach ($data as $k => $v)
+        {
+            $idList[] = $v['id'];
+        }
+        $allRoom = $this->hotelRoomAll();
+        if(!$allRoom) return null;
+        $last_id_list = [];
+        foreach ($allRoom as $k => $v)
+        {
+            if($v['unified_facilities']){
+                $fIdList = explode(",",trim($v['unified_facilities'],','));
+                foreach ($fIdList as $val)
+                {
+                    if(in_array($val,$idList) && !in_array($val,$last_id_list))
+                    {
+                        $last_id_list[] = $val;
+                    }
+                }
+            };
+        }
+        $last_data = [];
+        if($last_id_list)
+        {
+            foreach ($data as $k => $v)
+            {
+                if(in_array($v['id'],$last_id_list))
+                {
+                    $last_data[] = $v;
+                }
+            }
+        }
+        return $last_data;
+    }
+
+
+
+    /**
+     * 酒店所有房型
+     *
+     * @return   array | null
+     */
+    public function hotelRoomAll()
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_hotel_house_type")
+                ->where(['x_id' => $this->s_id])
+                ->andWhere(['status' => 1])
+                ->all(Yii::$app->db2);
+        return $data;
+    }
+
+
+
+    /**
+     * 搜索酒店
+     */
+    public function searchHotel()
+    {
+        $params = [
+            'page' => $this->page,
+            'keyWords' => $this->keyWords,
+            'starPrice' => $this->starPrice,
+            'lat' => $this->lat,
+            'lng' => $this->lng
+        ];
+        $where = Yii::$app->where->select('selectHotel',$params);
+        $per = ($this->page - 1) * 10;
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_info")
+                ->where(['top_sort' => 2])
+                ->andWhere($where)
+                ->offset($per)
+                ->limit(10)
+                ->all();
+        if(!$data) return null;
+        return $this->hotelDataUnification($data);
+    }
+
+
+
+    /**
+     * 分类酒店数据
+     *
+     * @return   array  | null
+     */
+    public function hotelList()
+    {
+        $params = [
+            'sort_id' => $this->sort_id
+        ];
+        $where = Yii::$app->where->select('hotel',$params);
+        $data = (new Query())
+                ->select("*")
+                ->from("pay_store_info")
+                ->all();
+        if(!$data) return null;
+        $data = $this->hotelSelect($data,$where);
+        if(!$data) return null;
+        return $this->hotelDataUnification($data);
+    }
+
+
+
+    /**
+     * 酒店数据格式化
+     *
+     * @param   array   $data  数据集合
+     * @return  array | null
+     */
+    public function hotelDataUnification($data)
+    {
+        $last_data = [];
+        foreach ($data as $k => $v)
+        {
+            $dis = $this->sum($this->lat,$this->lng,$v['lat'],$v['lng']);
+            $headerImg = $this->headerImg($v['id']);
+            $last_data[] = [
+                's_id' => $v['id'],
+                'store_name' => $v['store_name'],
+                'score' => $v['score'],
+                'consume_num' => $v['consume'],
+                'address' => $v['address'],
+                'distance' => $dis,
+                'headerImg' => $headerImg ? [$headerImg] : null,
+                'price' => 100
+            ];
+        }
+        return $last_data;
+    }
+
+
+
+    /**
+     * 计算两点间的距离
+     *
+     * @param    string   $lat_1 | $lat_2    纬度
+     * @param    string   $lng_1 | $lng_2    经度
+     * @return   string
+     */
+    public function sum($lat_1, $lng_1, $lat_2, $lng_2)
+    {
+        // 将角度转为狐度
+        //deg2rad()函数将角度转换为弧度
+        $radLat1 = deg2rad($lat_1);
+        $radLat2 = deg2rad($lat_2);
+        $radLng1 = deg2rad($lng_1);
+        $radLng2 = deg2rad($lng_2);
+        $a = $radLat1 - $radLat2;
+        $b = $radLng1 - $radLng2;
+        $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * 6378.137 * 1000;
+        return round(($s / 1000),1) . 'km' ;
+    }
+
+
+
+
+    /**
+     * 酒店筛选
+     *
+     * @param    array   $data   酒店数据
+     * @param    array   $where  条件
+     * @return   array | null
+     */
+    #TODO:数据量大的时候可以考虑走redis缓存，这里暂时不做redis的读取
+    public function hotelSelect($data,$where)
+    {
+        $sortData = (new Query())
+                    ->select("*")
+                    ->from("pay_hotel_brand_star as sort")
+                    ->where($where)
+                    ->all(Yii::$app->db2);
+        if(!$sortData) return null;
+        $star = [];
+        foreach ($sortData as $k => $v)
+        {
+            $star[] = $v['id'];
+        }
+        $last_data = [];
+        $i = 0;
+        $limit = $this->page * 10;
+        foreach ($data as $k => $v)
+        {
+            if(in_array($v['one_sort'],$star))
+            {
+                if($i <= $limit)
+                {
+                    $last_data[] = $v;
+                }
+                ++$i;
+            }
+        }
+        return $last_data;
+    }
+
+
 
 
     /**
@@ -475,6 +851,10 @@ class Store extends ActiveRecord
     /**
      * 其他信息
      *
+     * @param   int      $top_sort   顶级分类
+     * @param   int      $s_id       商家分类
+     * @param   int      $score      商家分数
+     * @param   int      $sort_two   二级分类id
      * @return  array
      */
     public function otherInfo($top_sort,$s_id,$score,$sort_two)

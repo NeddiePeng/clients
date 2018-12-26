@@ -7,19 +7,21 @@
  */
 namespace api\modules\v1\controllers;
 
+use api\modules\Base;
 use api\modules\v1\actions\CreateAction;
-use api\modules\v1\actions\IndexAction;
-use yii\web\Controller;
+use api\modules\v1\models\Demo;
 
-class DemoController extends Controller
+class DemoController extends Base
 {
 
 
     public function actions()
     {
         return [
-            'index' => [
-                'class' => IndexAction::className()
+            'demo' => [
+                'class' => CreateAction::className(),
+                'modelClass' => Demo::className(),
+                'modelActions' => 'index'
             ],
             'create' => [
                 'class' => CreateAction::className()

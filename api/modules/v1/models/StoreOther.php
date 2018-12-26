@@ -34,7 +34,15 @@ class StoreOther extends ActiveRecord
         $obj = new Store();
         foreach ($storeData as $k => $v)
         {
-            $headerData = $obj->headerImg($v['id']);
+            $headerData = null;
+            if($type) {
+                $imgData = $obj->headerImg($v['id']);
+                if($imgData)$headerData[] = $imgData;
+            }else{
+                $imgData = $obj->getStoreAlbum($v['id']);
+                if($imgData) $headerData = $imgData;
+            }
+            //$headerData = $obj->headerImg($v['id']);
             //$otherData = $this->otherInfo($v['top_sort'],$v['score'],$v['two_sort']);
             $otherData = Store::instance()->getOtherInfo($v['id'],$v['top_sort'],$v['one_sort'],$type);
             $last_data[] = [
@@ -43,8 +51,8 @@ class StoreOther extends ActiveRecord
                 'address' => $v['address'],
                 'lat' => $v['lat'] ? $v['lat'] : 0,
                 'lng' => $v['lng'] ? $v['lng'] : 0,
-                'headerImg' => $headerData ? [$headerData['img_url']] : null,
-                'sort_name' => $otherData[0] ? $otherData[0]['sort_name'] : "",
+                'headerImg' => $headerData ? $headerData : null,
+                'sort_name' => $otherData[0] ? $v['top_sort'] == 2 ? $otherData[0]['brand_name'] : $otherData[0]['sort_name'] : "",
                 'score' => $v['score'],
                 'type' => $v['top_sort'] == 2 ? 'hotel' : 'other',
                 'like_num' => $v['like_num'] ? $v['like_num'] : 0,
@@ -384,7 +392,14 @@ class StoreOther extends ActiveRecord
     {
         if($type == 2)
         {
-            return null;
+            $hourRoom = $this->hourDays($s_id);
+            $lastHour = $this->formatHour($hourRoom);
+            $allDayRoom = $this->allDays($s_id);
+            $lastAll = $this->formatHour($allDayRoom);
+            return [
+                'hourData' => $lastHour,
+                'allData' => $lastAll
+            ];
         }
         else
         {
@@ -407,6 +422,79 @@ class StoreOther extends ActiveRecord
 
 
 
+    /**
+     * 格式化房间数据
+     *
+     * @param   array   $data   房间数量
+     * @return  array | null
+     */
+    public function formatHour($data)
+    {
+        $lastHour = null;
+        if($data) {
+            foreach ($data as $key => $val){
+                $imgList = $this->hotelRoomImg($val['id']);
+                $parentData = $this->parentData($val['h_id']);
+                $is_window = $parentData && $parentData['is_window'] == 1 ? "含窗" : $parentData['is_window'] == 2 ? "部分含窗" : "不含窗";
+                $is_contain_breakfast =  $parentData && $parentData['is_contain_breakfast'] == 1 ? "含早" : $parentData['is_contain_breakfast'] == 2 ? "含双早" : "不含早";
+                $lastHour[] = [
+                    'room_id' => $val['id'],
+                    'parent_id' => $val['h_id'],
+                    'room_name' => ($parentData ? $parentData['house_title'] : "") . "({$val['spec_title']})",
+                    'contain_breakfast' => $is_contain_breakfast,
+                    'price' => $val['week_discount_price'],
+                    'header_img' => $imgList ? $imgList[0]['img_url'] : "",
+                    'is_Window' => $is_window,
+                    'floor_num' => $parentData ? $parentData['floor_num'] : "",
+                    'acreage' => $parentData ? $parentData['acreage'] : "",
+                    'bedType' => "大床",
+                    'refundType' => $val['refund_type'] == 1? "不可取消" : "限时取消"
+                ];
+            }
+        }
+        return $lastHour;
+    }
+
+
+
+    /**
+     * 房间父级
+     *
+     * @param   int   $id  房间id
+     * @return  array | null
+     */
+    public function parentData($id)
+    {
+        $data = (new Query())
+                ->select("*")
+                ->from('pay_hotel_house_type')
+                ->where(['id' => $id])
+                ->one(Yii::$app->db2);
+        return $data;
+    }
+
+
+
+    /**
+     * 酒店房间图片
+     *
+     * @param   int   $room_id   房间id
+     * @return  array | null
+     */
+    public function hotelRoomImg($room_id)
+    {
+        $data = (new Query())
+                ->select('*')
+                ->from("pay_hotel_album")
+                ->where(['h_id' => $room_id])
+                ->all(Yii::$app->db2);
+        return $data;
+    }
+
+
+
+
+
 
     /**
      * 买单数据格式化
@@ -420,7 +508,9 @@ class StoreOther extends ActiveRecord
         foreach ($checkData as $key => $val)
         {
             $dis_num = $this->getDiscount($val['dis_id']);
+            $last_data['id'] = $val['id'];
             $last_data['name'] = $dis_num.'折扣优惠';
+            $last_data['dis_num'] = $dis_num;
             $rules = $this->proRules($val['id'],3);
             if(!$rules) $last_data['rules'] = "每天00:00-24:00";
             $last_data['rules'] = $this->checkRules($rules);
@@ -609,10 +699,9 @@ class StoreOther extends ActiveRecord
     {
         $data = (new Query())
             ->select("*")
-            ->from("pay_store_project_s_id as project")
-            ->leftJoin("pay_store_check as group",'group.id=project.project_id')
-            ->where(['project.x_id' => $s_id])
-            ->andWhere(['project.type' => 3])
+            ->from("pay_store_check")
+            ->where(['x_id' => $s_id])
+            ->andWhere(['status' => 1])
             ->all();
         return $data;
     }

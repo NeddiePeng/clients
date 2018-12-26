@@ -19,7 +19,7 @@ class OrderOtherController extends Base
     public function actions()
     {
         return [
-            'create' => [
+            'create-order' => [
                 'class' => CreateAction::className(),
                 'modelClass' => Order::className(),
                 'scenario' => 'create-order',

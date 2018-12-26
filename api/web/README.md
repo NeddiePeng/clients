@@ -95,7 +95,7 @@ accessToken:授权码【后面请求一些接口时会用到】
 accessToken:授权码
 ```
 
-*Return；*
+*Return:*
 ```json
 
 ```
@@ -176,7 +176,6 @@ accessToken:授权码
 *GetParam:*
 ```text
 mask:advert显示位置  取值范围：【
-
     indexTop:首页顶部
     
     nearbyTop:附近顶部
@@ -457,7 +456,7 @@ top_sort：分类
 
 
 
-####首页点击进入内页
+####首页点击进入内页 & 三级页面数据【美食数据】
 
 *Url:http://clients.qmwjj.cc/v1/stores*
 
@@ -847,7 +846,41 @@ number:数量
 ```text
 order_id:订单号
 
+actual:支付金额
 ```
+
+*HeaderParan:*
+```text
+accessToken:授权码
+```
+
+*Return:*
+```json
+
+```
+
+
+####订单退款
+
+*Url:http://clients.qmwjj.cc/v1/order-return*
+
+*Method:POST*
+
+*PostParam:*
+```text
+order_id:订单号码
+```
+
+*HeaderParam:*
+```text
+accessToken:授权码
+```
+
+*Return:*
+```json
+
+```
+
 
 
 
@@ -941,6 +974,256 @@ accessToken:授权码
 ```json
 
 ```
+
+
+####首页分类
+
+*Url:http://clients.qmwjj.cc/v1/index-sort*
+
+*Method:POST*
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "id": "1",
+            "sort_name": "餐饮",
+            "parent_id": "0",
+            "childData": [
+                {
+                    "id": "255",
+                    "sort_name": "食品保健",
+                    "parent_id": "1",
+                    "childData": [
+                        {
+                            "id": "258",
+                            "sort_name": "其他食品保健",
+                            "parent_id": "255"
+                        },
+                        {
+                            "id": "660",
+                            "sort_name": "零食",
+                            "parent_id": "255"
+                        },
+                        {
+                            "id": "661",
+                            "sort_name": "保健品",
+                            "parent_id": "255"
+                        },
+                        {
+                            "id": "662",
+                            "sort_name": "栗子/干果",
+                            "parent_id": "255"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+
+####三级分类数据
+
+*Url:http://clients.qmwjj.cc/v1/three-sort*
+
+*Method:POST*
+
+*PostParam:*
+```text
+sort_id:分类id
+```
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "id": "2013",
+            "sort_name": "小火锅",
+            "parent_id": "201",
+            "rate": "0",
+            "add_time": "1540367455",
+            "status": "1"
+        }
+    ]
+}
+```
+
+
+####酒店搜索
+
+*Url:http://clients.qmwjj.cc/v1/search-hotel*
+
+*Method:POST*
+
+*PostParam:*
+```text
+keyWords:关键字
+
+starPrice:星级&金额【数据格式：{'star':3,'minPrice':100,'maxPrice':1000}  】
+
+lat：纬度
+
+lng:经度
+
+page:页码
+```
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "s_id": "26",
+            "store_name": "如家",
+            "score": "0",
+            "consume_num": "3",
+            "address": "凤城八路",
+            "distance": "11751.5km",
+            "headerImg": [
+                {
+                    "img_url": "http://store.qmwjj.cc/storeImg/Atlas/20180911152827_911.jpg"
+                }
+            ],
+            "price": 100
+        }
+    ]
+}
+```
+
+
+####分类酒店
+
+*Url:http://clients.qmwjj.cc/v1/hotel-sort*
+
+*Method:POST*
+
+*PostParam:*
+```text
+sort_id:分类id
+
+page:页码
+```
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "s_id": "26",
+            "store_name": "如家",
+            "score": "0",
+            "consume_num": "3",
+            "address": "凤城八路",
+            "distance": "0km",
+            "headerImg": [
+                {
+                    "img_url": "http://store.qmwjj.cc/storeImg/Atlas/20180911152827_911.jpg"
+                }
+            ],
+            "price": 100
+        }
+    ]
+}
+```
+
+
+####酒店详情
+
+*Url:http://clients.qmwjj.cc/v1/hotel-details*
+
+*Method:POST*
+
+*PostParam:*
+```text
+s_id:门店id
+
+lat:纬度
+
+lng:经度
+```
+
+*Return:*
+```json
+{
+    "code": 200,
+    "msg": "success",
+    "data": {
+        "infoData": {
+            "s_id": "26",
+            "store_name": "如家",
+            "score": "0",
+            "sort_name": "餐饮",
+            "per_capita": 100,
+            "mobile": "18623821323",
+            "address": "凤城八路",
+            "Notice": "节假日提供早餐呢",
+            "headerImgData": {
+                "imgUrl": "http://store.qmwjj.cc/storeImg/Atlas/20180911152827_911.jpg",
+                "count": 3
+            },
+            "distance": "11751.5km",
+            "lat": "34.265239",
+            "lng": "108.946825"
+        },
+        "otherInfo": {
+            "facility": [
+                {
+                    "id": "2",
+                    "facilities_title": "台式电脑",
+                    "parent_id": "1"
+                },
+                {
+                    "id": "3",
+                    "facilities_title": "电话",
+                    "parent_id": "1"
+                }
+            ],
+            "otherInfo": {
+                "Decoration": "1970",
+                "openTime": "1970",
+                "floor_number": "0",
+                "roomTotal": "0"
+            },
+            "descriptions": "",
+            "traffic": [
+                {
+                    "name": "市图书馆",
+                    "distance": "1.2Km"
+                },
+                {
+                    "name": "地铁四号线常青路站",
+                    "distance": "0.1km"
+                }
+            ]
+        },
+        "commentScore": {
+            "totalScore": "0",
+            "otherScore": {
+                "flavor": 0,
+                "service": 0,
+                "scenario": 0
+            }
+        },
+        "proData": null
+    }
+}
+```
+
+
+
+
+
 
 
 

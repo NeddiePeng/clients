@@ -31,6 +31,8 @@ class Order extends ActiveRecord
     public $type;
     public $pay_method;
     static $partitionIndex_;
+    public $p_id;
+    public $mask_msg = '';
 
 
 
@@ -67,7 +69,7 @@ class Order extends ActiveRecord
             [['accessToken'],'required','on' => 'new-order'],
             [['order_id'],'required','on' => 'order-details'],
             [
-                ['s_id','id','actual','total','offer_price','number'],
+                ['s_id','p_id','actual','total','offer_price','number','accessToken','type'],
                 'required',
                 'on' => 'create-order'
             ],
@@ -180,13 +182,16 @@ class Order extends ActiveRecord
             'dis_price' => $this->offer_price,
             'service_price' => $this->actual * 0.06,
             'type' => $this->type,
-            'create_order_time' => time()
+            'create_order_time' => time(),
+            'mask_msg' => $this->mask_msg
         ];
         $res = Yii::$app->db->createCommand()
-               ->insert(static::tableName(),$insert_data)
+               ->insert("pay_store_order",$insert_data)
                ->execute();
         if(!$res) return false;
-        return $this->insertOrderObject($order_id);
+        $insertObj = $this->insertOrderObject($order_id);
+        if($insertObj) return ['order_id' => $order_id];
+        return false;
     }
 
 
@@ -262,7 +267,7 @@ class Order extends ActiveRecord
     {
         $data = $this->proData($orderData['type'],$orderData['project_id']);
         $status = $this->orderStatus($orderData['is_pay_success'],$orderData['is_refund'],$orderData['is_comment']);
-        $proData = Product::unified($data, $orderData['type'], $orderData['number'],$status,$orderData['pay_time'],$orderData['x_id']);
+        $proData = Product::unified($data, $orderData['type'], $orderData['number'],$status,$orderData['pay_time'],$orderData['x_id'],100);
         $storeData = Store::findOne(['id' => $orderData['x_id']]);
         $last_data = [
             'order_id' => $orderData['order_id'],
@@ -340,6 +345,7 @@ class Order extends ActiveRecord
                  ->limit($this->limit)
                  ->all();
         if(!$order) return null;
+        return $order;
     }
 
 
@@ -357,7 +363,7 @@ class Order extends ActiveRecord
         {
             $data = $this->proData($val['type'],$val['project_id']);
             $status = $this->orderStatus($val['is_pay_success'],$val['is_refund'],$val['is_comment']);
-            $proData = Product::unified($data, $val['type'], $val['number'],$status,$val['pay_time'],$val['x_id']);
+            $proData = Product::unified($data, $val['type'], $val['number'],$status,$val['pay_time'],$val['x_id'],$val['actual_price']);
             if($proData) $last_data[] = $proData;
         }
         return $last_data;

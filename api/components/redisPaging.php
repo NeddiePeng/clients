@@ -85,6 +85,65 @@ class redisPaging extends Component
     }
 
 
+    //分页数据前缀
+    public $prefix = 'limit_';
+
+    //缓存数据前缀
+    public $cachePrefix = 'cache_';
+
+    //缓存order
+    public $cacheOrder = 'id';
+
+
+    /**
+     * 写入分页数据
+     *
+     * @param   array   $data       需要写入cache的数据
+     * @param   string  $cacheKey   缓存key
+     * @param   string  $limitKey   分页key
+     * @return  boolean
+     */
+    public function WriteRedis($data, $cacheKey, $limitKey)
+    {
+        if(!$data || !is_array($data)) return false;
+        $limitKey .= $this->prefix.$limitKey;
+        $cacheKey .= $this->cachePrefix.$cacheKey;
+        foreach ($data as $k => $v)
+        {
+            $this->instance->zAdd($limitKey,$v[$this->cacheOrder],$v[$this->cacheOrder]);
+            //序列化
+            $this->instance->hSet($cacheKey,$v[$this->cacheOrder],serialize($v));
+        }
+        return true;
+    }
+
+
+
+    /**
+     * 读取分页数据
+     *
+     * @param   string   $cacheKey   缓存key
+     * @param   string   $limitKey   分页key
+     * @return  array | null
+     */
+    public function ReadCache($cacheKey,$limitKey)
+    {
+        if(!is_numeric($this->page) || !is_numeric($this->limit)) return null;
+        $limit_s = ($this->page-1) * $this->limit;
+        $limit_e = ($limit_s + $this->limit) - 1;
+        $limitData = $this->instance->zRange($limitKey,$limit_s,$limit_e);
+        if(!$limitData) return null;
+        $returnDara = [];
+        foreach ($limitData as $k => $val)
+        {
+            $data = $this->instance->hGet($cacheKey, $val);
+            //反序列化
+            $returnDara[] = unserialize($data);
+        }
+        return $returnDara;
+    }
+
+
 
 
 

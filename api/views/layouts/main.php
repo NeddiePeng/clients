@@ -105,6 +105,6 @@ AppAsset::register($this);
     var $node = '<div id="loading">' +
         '<img src="/css/loading_2.gif" alt="">' +
         '</div>';
-   $("body").append($($node));
+   // $("body").append($($node));
 </script>
 <?php $this->endPage() ?>

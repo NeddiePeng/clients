@@ -148,7 +148,7 @@ class CommonController extends Base
             $isLikeShare = UserActions::instance()->isLikeShare($params['s_id'],$uid);
             if($isLikeShare) return $this->returnData(400,'已操作过该门店');
             Yii::$app->likeShare->setLikeRedis($params['s_id'],$params['type'],$uid);
-            header("Location:http://clients.qmwjj.cc/v1/synchro");
+            file_get_contents("http://clients.qmwjj.cc/v1/synchro");
             return $this->returnData(200,'点赞成功');
         }
         return $this->returnRuleErr($model);

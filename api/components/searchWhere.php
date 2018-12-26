@@ -1,6 +1,6 @@
 <?php
 /**
- * 一些项目中需要的条件查询.
+ * 条件查询.
  * User: Pengfan
  * Date: 2018/12/7
  * Time: 11:13
@@ -136,6 +136,8 @@ class searchWhere extends Component
         ];
         if(!isset($params['sort_two']) || !$params['sort_two']) return $where;
         array_push($where,['=','one_sort',$params['sort_two']]);
+        if(!isset($params['sort_three']) || !$params['sort_three']) return $where;
+        array_push($where,['=','two_sort',$params['sort_three']]);
         return $where;
     }
 
@@ -274,6 +276,43 @@ class searchWhere extends Component
         return $where;
     }
 
+
+
+
+    /**
+     * 酒店搜索条件
+     *
+     * @param    array   $params   搜索参数
+     * @return   array
+     */
+    public function hotel($params)
+    {
+        $where = ['and'];
+        switch ($params['sort_id'])
+        {
+            case $params['sort_id'] <= 2:
+                $where[] = ['<=','sort.star_num',2];
+                break;
+            case $params['sort_id'] > 2:
+                $where[] = ['=','sort.star_num',$params['sort_id']];
+                break;
+            default:
+                $where = "1=1";
+        }
+        return $where;
+    }
+
+
+    /**
+     * 酒店搜索
+     *
+     * @param   array   $params   参数集合
+     * @return  array
+     */
+    public function selectHotel($params)
+    {
+        return "1=1";
+    }
 
 
 
