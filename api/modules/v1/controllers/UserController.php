@@ -49,6 +49,9 @@ class UserController extends Base
      */
     public function actionIndex()
     {
+        /**
+         * @var $TokenBehavior \api\behaviors\TokenBehavior
+         */
         $this->getBehavior('TokenBehavior')->checkAccessToken();
         $accessToken = Yii::$app->request->headers->get('accessToken');
         $params = ['accessToken' => $accessToken];
